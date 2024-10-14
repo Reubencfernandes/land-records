@@ -1,65 +1,105 @@
 <?php
-// Step 1: Database connection setup
-$host = 'localhost';
-$dbname = 'property_database'; // Adjust based on your database name
-$username = 'root'; // Database username
-$password = ''; // Database password
+// Handle form submission
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "PropertyDB";
 
-$conn = mysqli_connect($host, $username, $password, $dbname);
+// Create connection
+$conn = mysqli_connect($servername, $username, $password, $dbname);
 
+// Check connection
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// Step 2: Query to fetch data from the 'property' table
-$sql = "SELECT propertyid, location, owner_name FROM property";
-$result = mysqli_query($conn, $sql);
+$properties = array();
+
+if (isset($_POST['search_by_name'])) {
+    // Process the 'Name' search form submission
+    $owner_name = $_POST['owner_name'];
+    
+    $query = "SELECT * FROM property AS P, owners O WHERE O.name = '$owner_name' AND P.propertyID = O.propertyID;";
+    $result = mysqli_query($conn, $query);
+    
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $properties[] = $row;
+        }
+    }
+} elseif (isset($_POST['search_by_location'])) {
+    // Process the 'Location' search form submission
+    echo $_POST['taluka'];
+    $taluka = $_POST['taluka'];
+    $village_name =  $_POST['village_name'];
+    $survey_no = $_POST['survey_no'];
+    $sub_div = $_POST['sub_div'];
+    
+    $query = "SELECT * FROM property AS P, owners O WHERE taluka = '$taluka' AND village_name = '$village_name' AND survey_no = $survey_no AND subdivision = $sub_div AND P.propertyID = O.propertyID;";
+    $result = mysqli_query($conn, $query);
+    
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $properties[] = $row;
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Property Records</title>
-    <script src="https://cdn.tailwindcss.com"></script> <!-- Including TailwindCSS -->
+    <title>Property Dashboard</title>
+    <!-- Include Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
+<body class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <h1 class="text-3xl font-bold text-gray-900">Property Dashboard</h1>
+        </div>
+    </header>
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-4xl font-bold text-center mb-10">PROPERTY RECORDS</h1>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        <?php
-        if (mysqli_num_rows($result) > 0) {
-            while ($property = mysqli_fetch_assoc($result)) {
-                ?>
-                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-                    <img class="w-full h-48 object-cover" src="default_image.jpg" alt="Property Image">
-                    <div class="p-4">
-                        <h2 class="text-xl font-semibold mb-2">Location: <?php echo htmlspecialchars($property['location']); ?></h2>
-                        <p class="text-gray-700">Owner: <?php echo htmlspecialchars($property['owner_name']); ?></p>
-                        <p class="text-gray-500 text-sm">Property ID: <?php echo htmlspecialchars($property['propertyid']); ?></p>
-                        <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">
-                            View
-                        </button>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <!-- Property Cards Grid -->
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <?php foreach ($properties as $property): ?>
+                    <div class="bg-white shadow rounded-md">
+                        <!-- Card Header -->
+                        <div class="p-4 border-b">
+                            <h2 class="text-lg font-semibold"><?php echo $property['subdivision']; ?></h2>
+                        </div>
+                        <!-- Card Content -->
+                        <div class="p-4">
+                            <div class="space-y-2">
+                                <!-- Location -->
+                                <div class="flex items-center">
+                                    <!-- MapPin Icon -->
+                                    <!-- SVG code -->
+                                    <span class="text-sm"><?php echo $property['location']; ?></span>
+                                </div>
+                                <!-- Subdivision -->
+                                <div class="flex items-center">
+                                    <!-- Home Icon -->
+                                    <!-- SVG code -->
+                                    <span class="text-sm"><?php echo $property['subdivision']; ?></span>
+                                </div>
+                                <!-- Owner -->
+                                <div class="flex items-center">
+                                    <!-- User Icon -->
+                                    <!-- SVG code -->
+                                    <span class="text-sm"><?php echo $property['owner']; ?></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <?php
-            }
-        } else {
-            ?>
-            <p class="text-center text-gray-500">No properties found.</p>
-            <?php
-        }
-        ?>
-    </div>
-</div>
-
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </main>
 </body>
 </html>
-
-<?php
-// Step 3: Close the database connection
-mysqli_close($conn);
-?>

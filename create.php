@@ -30,7 +30,7 @@ if (isset($_POST['create']) && $db_exists == false) {
     }
     mysqli_select_db($conn, 'PropertyDB');
     $sql = "CREATE TABLE Property (
-    propertyID INT PRIMARY KEY,
+    propertyID VARCHAR(255) PRIMARY KEY,
     village_name VARCHAR(100),
     survey_no VARCHAR(50),
     taluka VARCHAR(100),
@@ -52,6 +52,9 @@ if (isset($_POST['create']) && $db_exists == false) {
     class_B DECIMAL(10,2),
     total_cultivable_area DECIMAL(10,2) GENERATED ALWAYS AS (
         pot_kharab + class_A + class_B
+    ) VIRTUAL,
+    grand_total DECIMAL(10,2) GENERATED ALWAYS AS (
+        total_uncultivable_area + total_cultivable_area
     ) VIRTUAL
 );";
         
@@ -62,7 +65,7 @@ if (isset($_POST['create']) && $db_exists == false) {
     }
     $sql = "CREATE TABLE Owners (
         ownerID INT  PRIMARY KEY,
-        propertyID INT,
+        propertyID VARCHAR(255),
         mutation VARCHAR(100),
         name VARCHAR(255),
         khata_no VARCHAR(50),
@@ -90,7 +93,7 @@ if (isset($_POST['create']) && $db_exists == false) {
 
     $sql = "CREATE TABLE CroppedArea (
         cropID INT AUTO_INCREMENT PRIMARY KEY,
-        propertyID INT,
+        propertyID VARCHAR(255),
         irrigated_area DECIMAL(10,2),
         year INT,
         season VARCHAR(50),
