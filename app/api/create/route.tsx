@@ -57,7 +57,7 @@ export async function GET() {
       // Create Owners table
       await connection.execute(`
         CREATE TABLE Owners (
-          ownerID INT PRIMARY KEY,
+          ownerID VARCHAR(255) PRIMARY KEY,
           propertyID VARCHAR(255),
           mutation VARCHAR(100),
           name VARCHAR(255),
@@ -71,7 +71,7 @@ export async function GET() {
       // Create Tenancy table
       await connection.execute(`
         CREATE TABLE Tenancy (
-          tenancyID INT PRIMARY KEY,
+          tenancyID VARCHAR(255) PRIMARY KEY,
           ownerID INT,
           name VARCHAR(255),
           khata_no VARCHAR(50),
