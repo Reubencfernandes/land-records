@@ -4,20 +4,20 @@ import mysql from 'mysql2/promise';
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
-    propertyID,
-    village_name,
-    survey_no,
+    propertyid,
+    villageName,
+    surveyNo,
     taluka,
     subdivision,
     ker,
     rice,
-    dry_crop,
+    dryCrop,
     khazan,
     morad,
     garden,
-    pot_kharab,
-    class_A,
-    class_B
+    potKharab,
+    classA,
+    classB
   } = body;
 
   try {
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
     });
 
     const [result] = await connection.execute(
-      'INSERT INTO Property (propertyID, village_name, survey_no, taluka, subdivision, ker, rice, dry_crop, khazan, morad, garden, pot_kharab, class_A, class_B) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [propertyID, village_name, survey_no, taluka, subdivision, ker, rice, dry_crop, khazan, morad, garden, pot_kharab, class_A, class_B]
+      `INSERT INTO Property (propertyID, village_name, survey_no, taluka, subdivision, ker, rice, dry_crop, khazan, morad, garden, pot_kharab, class_A, class_B) 
+      VALUES ('${propertyid}', '${villageName}', ${surveyNo}, '${taluka}',${subdivision} , ${ker}, ${rice}, ${dryCrop}, ${khazan}, ${morad}, ${garden}, ${potKharab}, ${classA}, ${classB})`
     );
 
     await connection.end();

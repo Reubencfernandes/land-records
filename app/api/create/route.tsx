@@ -26,9 +26,9 @@ export async function GET() {
         CREATE TABLE Property (
           propertyID VARCHAR(255) PRIMARY KEY,
           village_name VARCHAR(100),
-          survey_no VARCHAR(50),
+          survey_no INT,
           taluka VARCHAR(100),
-          subdivision VARCHAR(50),
+          subdivision INT,
           location VARCHAR(255) GENERATED ALWAYS AS (
             CONCAT(village_name, ', ', taluka, ', ', subdivision, ', Survey No: ', survey_no)
           ) VIRTUAL,
@@ -59,9 +59,9 @@ export async function GET() {
         CREATE TABLE Owners (
           ownerID VARCHAR(255) PRIMARY KEY,
           propertyID VARCHAR(255),
-          mutation VARCHAR(100),
+          mutation INT,
           name VARCHAR(255),
-          khata_no VARCHAR(50),
+          khata_no INT,
           remarks TEXT,
           FOREIGN KEY (propertyID) REFERENCES Property(propertyID)
         )
@@ -72,11 +72,11 @@ export async function GET() {
       await connection.execute(`
         CREATE TABLE Tenancy (
           tenancyID VARCHAR(255) PRIMARY KEY,
-          ownerID INT,
+          ownerID VARCHAR(255),
           name VARCHAR(255),
-          khata_no VARCHAR(50),
+          khata_no INT,
           remarks TEXT,
-          mutation VARCHAR(100),
+          mutation INT,
           FOREIGN KEY (ownerID) REFERENCES Owners(ownerID)
         )
       `);
@@ -85,7 +85,7 @@ export async function GET() {
       // Create CroppedArea table
       await connection.execute(`
         CREATE TABLE CroppedArea (
-          cropID INT AUTO_INCREMENT PRIMARY KEY,
+          cropID VARCHAR(255) PRIMARY KEY,
           propertyID VARCHAR(255),
           irrigated_area DECIMAL(10,2),
           year INT,
@@ -100,14 +100,69 @@ export async function GET() {
         )
       `);
       console.log("Table 'CroppedArea' created successfully.");
+      
 
-      return NextResponse.json({ message: 'Database and tables created successfully' }, { status: 200 });
+      await connection.execute(`
+CREATE TABLE IF NOT EXISTS log_table (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  message VARCHAR(255),
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`);
+
+await connection.execute(`
+CREATE TRIGGER after_property_insert
+AFTER INSERT ON Property
+FOR EACH ROW
+BEGIN
+  INSERT INTO log_table (message, time)
+  VALUES (CONCAT('New property inserted with ID: ', NEW.propertyID), CURRENT_TIMESTAMP);
+END;
+`);
+
+
+      return new NextResponse(
+        `<html>
+          <body>
+            <h1>Success!</h1>
+            <p>Database and tables created successfully</p>
+            <Link href="/">Go to home</Link>
+          </body>
+        </html>`,
+        {
+          status: 200,
+          headers: { 'Content-Type': 'text/html' },
+        }
+      );
     } else {
-      return NextResponse.json({ message: 'Database already exists' }, { status: 200 });
+      return new NextResponse(
+        `<html>
+          <body>
+            <h1>Info</h1>
+            <p>Database already exists</p>
+            <Link href="/">Go to home</Link>
+          </body>
+        </html>`,
+        {
+          status: 200,
+          headers: { 'Content-Type': 'text/html' },
+        }
+      );
     }
   } catch (error) {
     console.error('Error:', error);
-    return NextResponse.json({ message: 'Error creating database or tables', error }, { status: 500 });
+    return new NextResponse(
+      `<html>
+        <body>
+          <h1>Error</h1>
+          <p>Error creating database or tables: ${error instanceof Error ? error.message : 'Unknown error'}</p>
+          <Link href="/">Go to home</Link>
+        </body>
+      </html>`,
+      {
+        status: 500,
+        headers: { 'Content-Type': 'text/html' },
+      }
+    );
   } finally {
     await connection.end();
   }

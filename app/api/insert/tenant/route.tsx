@@ -4,11 +4,12 @@ import mysql from 'mysql2/promise';
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
-    ownerID,
-    name,
-    khata_no,
-    remarks,
-    mutation
+      ownerid,
+      tenancyid,
+      tenantName,
+      tenantKhataNo,
+      tenantRemarks,
+      tenantMutation
   } = body;
 
   try {
@@ -20,8 +21,7 @@ export async function POST(req: NextRequest) {
     });
 
     const [result] = await connection.execute(
-      'INSERT INTO Tenancy (ownerID, name, khata_no, remarks, mutation) VALUES (?, ?, ?, ?, ?)',
-      [ownerID, name, khata_no, remarks, mutation]
+      `INSERT INTO Tenancy (tenancyID, ownerID, name, khata_no, remarks, mutation) VALUES ('${tenancyid}', '${ownerid}', '${tenantName}', ${tenantKhataNo}, '${tenantRemarks}', ${tenantMutation})`
     );
 
     await connection.end();

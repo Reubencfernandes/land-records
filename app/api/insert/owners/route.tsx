@@ -4,13 +4,14 @@ import mysql from 'mysql2/promise';
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
-    ownerID,
-    propertyID,
+    propertyid, // Corrected variable name
+    ownerid,
     mutation,
-    name,
-    khata_no,
-    remarks
-  } = body;
+    ownerName,
+    khataNo,
+    remarks,
+    tenants
+  } = body; // Ensure this matches the keys in the body
 
   try {
     const connection = await mysql.createConnection({
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     });
 
     const [result] = await connection.execute(
-        `INSERT INTO Owners (ownerID, propertyID, mutation, name, khata_no, remarks) VALUES (${ownerID}, ${propertyID}, '${mutation}', '${name}', '${khata_no}', '${remarks}')`
+        `INSERT INTO Owners (ownerID, propertyID, mutation, name, khata_no, remarks) VALUES ('${ownerid}', '${propertyid}', ${mutation}, '${ownerName}', ${khataNo}, '${remarks}')`
       );
 
     await connection.end();
