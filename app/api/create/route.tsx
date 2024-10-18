@@ -6,6 +6,7 @@ export async function GET() {
     host: 'localhost',
     user: 'root',
     password: '',
+    multipleStatements: true
   });
 
   try {
@@ -16,7 +17,7 @@ export async function GET() {
     if (Array.isArray(rows) && rows.length === 0) {
       // Create database
       await connection.execute("CREATE DATABASE Property_Records");
-      console.log("Database 'PropertyDB' created successfully.");
+      console.log("Database 'Property_Records' created successfully.");
 
       // Switch to the new database
       await connection.changeUser({ database: 'Property_Records' });
@@ -29,9 +30,6 @@ export async function GET() {
           survey_no INT,
           taluka VARCHAR(100),
           subdivision INT,
-          location VARCHAR(255) GENERATED ALWAYS AS (
-            CONCAT(village_name, ', ', taluka, ', ', subdivision, ', Survey No: ', survey_no)
-          ) VIRTUAL,
           ker DECIMAL(10,2),
           rice DECIMAL(10,2),
           dry_crop DECIMAL(10,2),
@@ -101,51 +99,52 @@ export async function GET() {
       `);
       console.log("Table 'CroppedArea' created successfully.");
       
-
+      // Create log_table
       await connection.execute(`
-CREATE TABLE IF NOT EXISTS log_table (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  message VARCHAR(255),
-  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)`);
+        CREATE TABLE IF NOT EXISTS log_table (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          message VARCHAR(255),
+          time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log("Table 'log_table' created successfully.");
 
-await connection.execute(`
-DELIMITER //
-CREATE TRIGGER IF NOT EXISTS after_property_insert
-AFTER INSERT ON Property
-FOR EACH ROW
-BEGIN
-  INSERT INTO log_table (message, time)
-  VALUES (CONCAT('New property inserted with ID: ', NEW.propertyID), CURRENT_TIMESTAMP);
-END;
-//
-DELIMITER ;
-`);
+      // Create trigger
+      await connection.query(`
+        CREATE TRIGGER after_property_insert
+        AFTER INSERT ON Property
+        FOR EACH ROW
+        INSERT INTO log_table (message, time)
+        VALUES ('A User Has Entered a new Property Information', CURRENT_TIMESTAMP)
+      `);
+      console.log("Trigger 'after_property_insert' created successfully.");
 
-return new NextResponse(
-  `<html>
-    <head>
-    <title>land records</title>
-      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    </head>
-    <body class="flex items-center justify-center h-screen bg-gray-100">
-      <div class="text-center">
-        <h1 class="text-2xl font-bold mb-4">Database status</h1>
-        <p class="mb-4">Database Created Successfully</p>
-        <a href="/" class="text-blue-500 hover:underline">Go to home</a>
-      </div>
-    </body>
-  </html>`,
-  {
-    status: 200,
-    headers: { 'Content-Type': 'text/html' },
-  }
-);
+      return new NextResponse(
+        `<html>
+          <head>
+          <title>Land Records</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          </head>
+          <body class="flex items-center justify-center h-screen bg-gray-100">
+            <div class="text-center">
+              <h1 class="text-2xl font-bold mb-4">Database Status</h1>
+              <p class="mb-4">Database 'Property_Records' created successfully</p>
+              <p class="mb-4">Tables created: Property, Owners, Tenancy, CroppedArea, log_table</p>
+              <p class="mb-4">Trigger 'after_property_insert' created</p>
+              <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+            </div>
+          </body>
+        </html>`,
+        {
+          status: 200,
+          headers: { 'Content-Type': 'text/html' },
+        }
+      );
     } else {
       return new NextResponse(
         `<html>
           <head>
-          <title>land records</title>
+          <title>Land Records</title>
             <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
           </head>
           <body class="flex items-center justify-center h-screen bg-gray-100">
@@ -167,7 +166,7 @@ return new NextResponse(
     return new NextResponse(
       `<html>
       <head>
-      <title>land records</title>
+      <title>Land Records</title>
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
       </head>
       <body class="flex items-center justify-center h-screen bg-gray-100">

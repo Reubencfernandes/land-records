@@ -237,7 +237,7 @@ export default function InsertData() {
     }
 
     // If all data was submitted successfully
-    router.refresh();
+    router.push('/');
   };
 
   return (

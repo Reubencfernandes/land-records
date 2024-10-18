@@ -2,11 +2,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import DisplayData from "./displaydata/page"; // Import DisplayData component
+import DisplayData from "./displaydata/page";
 
 export default function Home() {
   const [selection, setSelection] = useState("name");
-  const [data, setData] = useState(null); // State to hold fetched data
+  const [data, setData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -20,7 +21,7 @@ export default function Home() {
 
     let response;
     if (searchType === "name") {
-      const name = form.oname.value;
+      const name = (form.oname as HTMLInputElement).value;
       response = await fetch('/api/search/byname', {
         method: 'POST',
         headers: {
@@ -28,11 +29,11 @@ export default function Home() {
         },
         body: JSON.stringify({ name }),
       });
-    } else {
-      const taluka = form.taluka.value;
-      const villageName = form.village_name.value;
-      const surveyNo = form.survey_no.value;
-      const subDivision = form.sub_div.value;
+    } else if (searchType === "location") {
+      const taluka = (form.taluka as HTMLInputElement).value;
+      const villageName = (form.village_name as HTMLInputElement).value;
+      const surveyNo = (form.survey_no as HTMLInputElement).value;
+      const subDivision = (form.sub_div as HTMLInputElement).value;
       response = await fetch('/api/search/bylocation', {
         method: 'POST',
         headers: {
@@ -42,11 +43,17 @@ export default function Home() {
       });
     }
 
-    if (response.ok) {
+    if (response && response.ok) {
       const fetchedData = await response.json();
-      setData(fetchedData); // Store fetched data in state
+      setData(fetchedData);
+      setError(null);
+      router.push(`/displaydata?data=${encodeURIComponent(JSON.stringify(fetchedData))}`);
     } else {
-      console.error('Failed to fetch data');
+      const errorData = await response?.json();
+      const errorMessage = errorData?.error || 'Failed to fetch data';
+      console.error(errorMessage);
+      setError(errorMessage);
+      router.push(`/displaydata?error=${encodeURIComponent(errorMessage)}`);
     }
   };
 
@@ -56,6 +63,7 @@ export default function Home() {
         <div className="flex items-center mx-auto justify-between px-10">
           <h1 className="text-4xl font-bold text-white font-inter">PROPERTY RECORD</h1>
           <div className="pl-4 hover:text-red-500">
+            <Link href="/viewtrigger" className="pr-4 pl-4 text-white font-inter">View Triggers</Link>
             <Link href="/insertdata" className="pr-4 pl-4 text-white font-inter">
               Add Record
             </Link>
@@ -92,8 +100,8 @@ export default function Home() {
                 <option value="location">Location</option>
               </select>
 
-              {selection === "name" ? (
-                <div className="flex items-center  sm:w-auto mb-4 sm:mb-0">
+              {selection === "name" && (
+                <div className="flex items-center sm:w-auto mb-4 sm:mb-0">
                   <input
                     type="text"
                     name="oname"
@@ -102,7 +110,9 @@ export default function Home() {
                     required
                   />
                 </div>
-              ) : (
+              )}
+
+              {selection === "location" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4 sm:mb-0">
                   <input
                     type="text"
@@ -145,9 +155,6 @@ export default function Home() {
             </form>
           </div>
         </div>
-
-        {/* Render DisplayData component if data is fetched */}
-        {data && <DisplayData data={data} />}
       </div>
     </div>
   );
