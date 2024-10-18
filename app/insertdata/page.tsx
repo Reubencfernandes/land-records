@@ -8,6 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from 'next/navigation';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 interface Tenant {
   tenancyid: string;
@@ -28,6 +37,7 @@ interface Owner {
 }
 
 export default function InsertData() {
+  const router = useRouter();
   const [propertyid, setPropertyid] = useState('');
   const [croppedareaid, setCroppedareaid] = useState('');
   // Property table states
@@ -124,12 +134,6 @@ export default function InsertData() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    for (const owner of owners) {
-      console.log(owner);
-      for (const tenant of owner.tenants) {
-        console.log(tenant);
-      }
-    }
     
     const propertyData = {
       propertyid,
@@ -156,14 +160,12 @@ export default function InsertData() {
         body: JSON.stringify(propertyData),
       });
 
-      if (response.ok) {
-        console.log('Data submitted successfully');
-        // Reset form or redirect user
-      } else {
-        console.error('Failed to submit data');
+      if (!response.ok) {
+        throw new Error('Failed to submit property data');
       }
     } catch (error) {
-      console.error('Error submitting data:', error);
+      console.error('Error submitting property data:', error);
+      return;
     }
     const croppedAreaData = {
       croppedareaid,
@@ -187,14 +189,12 @@ export default function InsertData() {
         body: JSON.stringify(croppedAreaData),
       });
 
-      if (response.ok) {
-        console.log('Data submitted successfully');
-        // Reset form or redirect user
-      } else {
-        console.error('Failed to submit data');
+      if (!response.ok) {
+        throw new Error('Failed to submit cropped area data');
       }
     } catch (error) {
-      console.error('Error submitting data:', error);
+      console.error('Error submitting cropped area data:', error);
+      return;
     }
     // Send owners data
     for (const owner of owners) {
@@ -207,13 +207,12 @@ export default function InsertData() {
           body: JSON.stringify(owner),
         });
 
-        if (response.ok) {
-          console.log('Owner data submitted successfully');
-        } else {
-          console.error('Failed to submit owner data');
+        if (!response.ok) {
+          throw new Error('Failed to submit owner data');
         }
       } catch (error) {
         console.error('Error submitting owner data:', error);
+        return;
       }
 
       // Send tenants data for each owner
@@ -227,20 +226,36 @@ export default function InsertData() {
             body: JSON.stringify({ ...tenant, ownerid: owner.ownerid }),
           });
 
-          if (response.ok) {
-            console.log('Tenant data submitted successfully');
-          } else {
-            console.error('Failed to submit tenant data');
+          if (!response.ok) {
+            throw new Error('Failed to submit tenant data');
           }
         } catch (error) {
           console.error('Error submitting tenant data:', error);
+          return;
         }
       }
     }
 
+    // If all data was submitted successfully
+    router.refresh();
   };
+
   return (
     <div className="container mx-auto p-4">
+      <nav className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Property Record</h1>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Insert Data</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </nav>
       <form className="space-y-8" onSubmit={handleSubmit}>
         <div className="bg-white shadow-md rounded-lg p-6">
           <div className="mb-4">
@@ -253,19 +268,19 @@ export default function InsertData() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="villageName">Area Name</Label>
-              <Input id="villageName" value={villageName} onChange={(e) => setVillageName(e.target.value)} />
+              <Input id="villageName" value={villageName} onChange={(e) => setVillageName(e.target.value)}  required/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="surveyNo">Survey No</Label>
-              <Input id="surveyNo" type="number" value={surveyNo} min={0} max={1000000000} onChange={(e) => setSurveyNo(Number(e.target.value))} />
+              <Input id="surveyNo" type="number" value={surveyNo} min={0} max={1000000000} onChange={(e) => setSurveyNo(Number(e.target.value))}  required/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="taluka">Taluka</Label>
-              <Input id="taluka" value={taluka} onChange={(e) => setTaluka(e.target.value)} />
+              <Input id="taluka" value={taluka} onChange={(e) => setTaluka(e.target.value)} required/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="subdivision">Subdivision</Label>
-              <Input id="subdivision"type="number" value={subdivision} min={0} max={1000000000} onChange={(e) => setSubdivision(Number(e.target.value))} />
+              <Input id="subdivision"type="number" value={subdivision} min={0} max={1000000000} onChange={(e) => setSubdivision(Number(e.target.value))}  required/>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ker">KER</Label>
@@ -322,12 +337,12 @@ export default function InsertData() {
                   <Input id={`ownerid-${ownerIndex}`} value={owner.ownerid} readOnly />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`mutation-${ownerIndex}`}>Mutation</Label>
-                  <Input id={`mutation-${ownerIndex}`}  type="number" value={owner.mutation} min={0} max={1000000000}onChange={(e) => handleOwnerChange(ownerIndex, 'mutation', e.target.value)} />
+                  <Label htmlFor={`ownerName-${ownerIndex}`}>Owner Name</Label>
+                  <Input id={`ownerName-${ownerIndex}`} value={owner.ownerName} onChange={(e) => handleOwnerChange(ownerIndex, 'ownerName', e.target.value)}  required/>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`ownerName-${ownerIndex}`}>Owner Name</Label>
-                  <Input id={`ownerName-${ownerIndex}`} value={owner.ownerName} onChange={(e) => handleOwnerChange(ownerIndex, 'ownerName', e.target.value)} />
+                  <Label htmlFor={`mutation-${ownerIndex}`}>Mutation</Label>
+                  <Input id={`mutation-${ownerIndex}`}  type="number" value={owner.mutation} min={0} max={1000000000}onChange={(e) => handleOwnerChange(ownerIndex, 'mutation', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`khataNo-${ownerIndex}`}>Khata No</Label>

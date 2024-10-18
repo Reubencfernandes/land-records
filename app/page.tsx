@@ -2,9 +2,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import DisplayData from "./displaydata/page"; // Import DisplayData component
 
 export default function Home() {
   const [selection, setSelection] = useState("name");
+  const [data, setData] = useState(null); // State to hold fetched data
   const router = useRouter();
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -15,18 +17,37 @@ export default function Home() {
     e.preventDefault();
     const form = e.currentTarget;
     const searchType = form.searchType.value;
+
+    let response;
     if (searchType === "name") {
-      const searchValue = form.oname.value;
-      console.log(searchValue);
-      const queryString = `name=${form.oname.value}`;
-    router.push(`/displaydata?${queryString}`);
+      const name = form.oname.value;
+      response = await fetch('/api/search/byname', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      });
     } else {
-      const searchValue = form.taluka.value;
-      console.log(form.village_name.value,form.survey_no.value,form.sub_div.value,form.taluka.value);
-      const queryString = `village_name=${form.village_name.value}&survey_no=${form.survey_no.value}&sub_div=${form.sub_div.value}&taluka=${form.taluka.value}`;
-      router.push(`/displaydata?${queryString}`);
+      const taluka = form.taluka.value;
+      const villageName = form.village_name.value;
+      const surveyNo = form.survey_no.value;
+      const subDivision = form.sub_div.value;
+      response = await fetch('/api/search/bylocation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ taluka, village_name: villageName, survey_no: surveyNo, sub_division: subDivision }),
+      });
     }
-    
+
+    if (response.ok) {
+      const fetchedData = await response.json();
+      setData(fetchedData); // Store fetched data in state
+    } else {
+      console.error('Failed to fetch data');
+    }
   };
 
   return (
@@ -37,6 +58,9 @@ export default function Home() {
           <div className="pl-4 hover:text-red-500">
             <Link href="/insertdata" className="pr-4 pl-4 text-white font-inter">
               Add Record
+            </Link>
+            <Link href="/api/create" className="pr-4 pl-4 text-white font-inter">
+              Create Database
             </Link>
           </div>
         </div>
@@ -121,6 +145,9 @@ export default function Home() {
             </form>
           </div>
         </div>
+
+        {/* Render DisplayData component if data is fetched */}
+        {data && <DisplayData data={data} />}
       </div>
     </div>
   );

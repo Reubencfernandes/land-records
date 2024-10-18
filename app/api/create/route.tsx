@@ -110,36 +110,50 @@ CREATE TABLE IF NOT EXISTS log_table (
 )`);
 
 await connection.execute(`
-CREATE TRIGGER after_property_insert
+DELIMITER //
+CREATE TRIGGER IF NOT EXISTS after_property_insert
 AFTER INSERT ON Property
 FOR EACH ROW
 BEGIN
   INSERT INTO log_table (message, time)
   VALUES (CONCAT('New property inserted with ID: ', NEW.propertyID), CURRENT_TIMESTAMP);
 END;
+//
+DELIMITER ;
 `);
 
-
-      return new NextResponse(
-        `<html>
-          <body>
-            <h1>Success!</h1>
-            <p>Database and tables created successfully</p>
-            <Link href="/">Go to home</Link>
-          </body>
-        </html>`,
-        {
-          status: 200,
-          headers: { 'Content-Type': 'text/html' },
-        }
-      );
+return new NextResponse(
+  `<html>
+    <head>
+    <title>land records</title>
+      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+    <body class="flex items-center justify-center h-screen bg-gray-100">
+      <div class="text-center">
+        <h1 class="text-2xl font-bold mb-4">Database status</h1>
+        <p class="mb-4">Database Created Successfully</p>
+        <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+      </div>
+    </body>
+  </html>`,
+  {
+    status: 200,
+    headers: { 'Content-Type': 'text/html' },
+  }
+);
     } else {
       return new NextResponse(
         `<html>
-          <body>
-            <h1>Info</h1>
-            <p>Database already exists</p>
-            <Link href="/">Go to home</Link>
+          <head>
+          <title>land records</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          </head>
+          <body class="flex items-center justify-center h-screen bg-gray-100">
+            <div class="text-center">
+              <h1 class="text-2xl font-bold mb-4">Database Status</h1>
+              <p class="mb-4">Database already exists</p>
+              <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+            </div>
           </body>
         </html>`,
         {
@@ -152,12 +166,18 @@ END;
     console.error('Error:', error);
     return new NextResponse(
       `<html>
-        <body>
-          <h1>Error</h1>
-          <p>Error creating database or tables: ${error instanceof Error ? error.message : 'Unknown error'}</p>
-          <Link href="/">Go to home</Link>
-        </body>
-      </html>`,
+      <head>
+      <title>land records</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+      </head>
+      <body class="flex items-center justify-center h-screen bg-gray-100">
+        <div class="text-center">
+          <h1 class="text-2xl font-bold mb-4">Database Creation Error</h1>
+          <p class="mb-4">Error creating database or tables: ${error instanceof Error ? error.message : 'Unknown error'}</p>
+          <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+        </div>
+      </body>
+    </html>`,
       {
         status: 500,
         headers: { 'Content-Type': 'text/html' },

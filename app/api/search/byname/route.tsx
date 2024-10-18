@@ -4,6 +4,7 @@ import mysql from 'mysql2/promise';
 
 export async function POST(req: NextRequest) {
     const body = await req.json();
+    console.log("API",body);
     const { name } = body;
 
     try {
@@ -15,8 +16,8 @@ export async function POST(req: NextRequest) {
         });
 
         const [rows] = await connection.execute(
-            `SELECT * FROM property,owners WHERE owners.name = ${name} AND property.property_id = owners.property_id`);
-
+            `SELECT * FROM property,cropped_area,owners,tenants WHERE owners.name = '${name}' AND property.property_id = owners.property_id AND property.property_id = cropped_area.propertyid AND owners.ownerid = tenants.ownerid`);
+console.log(rows);
         return NextResponse.json(rows, { status: 200 });
 
     } catch (error) {

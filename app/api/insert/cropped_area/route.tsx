@@ -3,7 +3,6 @@ import mysql from 'mysql2/promise';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  console.log(req.json());
   const {
     croppedareaid,
     propertyid,
