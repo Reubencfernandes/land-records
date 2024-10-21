@@ -30,7 +30,18 @@ export default function PropertyDetails() {
     owners: [
       { name: "John Doe", mutation: "M123", khataNo: "K1", tenants: ["Alice", "Bob"] },
       { name: "Jane Smith", mutation: "M124", khataNo: "K2", tenants: ["Charlie"] }
-    ]
+    ],
+    croppedArea: {
+      irrigatedArea: 150,
+      unirrigatedArea: 250,
+      cropName: "Wheat",
+      year: 2023,
+      season: "Kharif",
+      cultivatorName: "John Doe",
+      landNotAvailableForCultivation: false,
+      sourceOfIrrigation: "Canal",
+      remarks: "Good yield expected"
+    }
   }
 
   const totalCultivableArea = Object.values(propertyData.cultivableArea).reduce((a, b) => a + b, 0)
@@ -90,6 +101,22 @@ export default function PropertyDetails() {
               <p><strong>Tenants:</strong> {owner.tenants.join(', ')}</p>
             </div>
           ))}
+        </>
+      ),
+    },
+    {
+      title: "Cropped Area Information",
+      description: (
+        <>
+          <p><strong>Irrigated Area:</strong> {propertyData.croppedArea.irrigatedArea} sq m</p>
+          <p><strong>Unirrigated Area:</strong> {propertyData.croppedArea.unirrigatedArea} sq m</p>
+          <p><strong>Crop Name:</strong> {propertyData.croppedArea.cropName}</p>
+          <p><strong>Year:</strong> {propertyData.croppedArea.year}</p>
+          <p><strong>Season:</strong> {propertyData.croppedArea.season}</p>
+          <p><strong>Cultivator Name:</strong> {propertyData.croppedArea.cultivatorName}</p>
+          <p><strong>Land Not Available For Cultivation:</strong> {propertyData.croppedArea.landNotAvailableForCultivation ? 'Yes' : 'No'}</p>
+          <p><strong>Source of Irrigation:</strong> {propertyData.croppedArea.sourceOfIrrigation}</p>
+          <p><strong>Remarks:</strong> {propertyData.croppedArea.remarks}</p>
         </>
       ),
     },
