@@ -57,6 +57,8 @@ const formattedData = {
     surveyNo: (rows as any[])[0]?.survey_no ?? '',
     subDivisionNo: (rows as any[])[0]?.subdivision ?? '',
     taluka: (rows as any[])[0]?.taluka ?? '',
+    total_uncultivable_area: (rows as any[])[0]?.total_uncultivable_area ?? 0,
+    total_cultivable_area: (rows as any[])[0]?.total_cultivable_area ?? 0,
     totalArea: (rows as any[])[0]?.grand_total ? parseFloat((rows as any[])[0].grand_total) : null,
     cultivableArea: {
         ker: parseFloat((rows as any[])[0]?.ker) || 0,
@@ -89,6 +91,7 @@ const formattedData = {
         remarks: (rows as any[])[0]?.remarks ?? ''
     }
 };
+await connection.end();
 return NextResponse.json(formattedData, { status: 200 });
 
     } catch (error) {

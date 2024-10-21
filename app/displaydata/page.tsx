@@ -14,6 +14,8 @@ export default function PropertyDetails() {
     subDivisionNo: "A",
     taluka: "Sample Taluka",
     totalArea: 1000,
+    total_uncultivable_area: 0,
+    total_cultivable_area: 0,
     cultivableArea: {
       ker: 200,
       rice: 300,
