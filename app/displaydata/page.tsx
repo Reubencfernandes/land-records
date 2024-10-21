@@ -1,120 +1,140 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import React from "react";
+import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
+import Link from "next/link";
+import { IconChevronRight } from "@tabler/icons-react";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
-interface PropertyData {
-  [key: string]: string | number | null;
-}
-
-export default function DisplayData() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [propertyData, setPropertyData] = useState<PropertyData[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const dataParam = searchParams.get('data');
-
-    if (dataParam) {
-      try {
-        const parsedData = JSON.parse(decodeURIComponent(dataParam));
-        if (Array.isArray(parsedData) && parsedData.length > 0) {
-          setPropertyData(parsedData);
-        } else {
-          throw new Error('Invalid data format');
-        }
-      } catch (e) {
-        console.error('Failed to parse data:', e);
-        setError('Failed to parse data');
-      }
-    } else {
-      setError('No data provided');
-    }
-  }, [searchParams]);
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert variant="destructive">
-              <AlertTitle>Oops! Something went wrong</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-            <Button 
-              className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white"
-              onClick={() => router.push('/')}
-            >
-              Return to Home
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+export default function PropertyDetails() {
+  // This would typically come from a database or API
+  const propertyData = {
+    villageName: "Sample Village",
+    surveyNo: "123",
+    subDivisionNo: "A",
+    taluka: "Sample Taluka",
+    totalArea: 1000,
+    cultivableArea: {
+      ker: 200,
+      rice: 300,
+      dryCrop: 100,
+      khzan: 50,
+      morad: 50,
+      garden: 100
+    },
+    uncultivableArea: {
+      classA: 100,
+      classB: 50,
+      potKarab: 50
+    },
+    owners: [
+      { name: "John Doe", mutation: "M123", khataNo: "K1", tenants: ["Alice", "Bob"] },
+      { name: "Jane Smith", mutation: "M124", khataNo: "K2", tenants: ["Charlie"] }
+    ]
   }
 
-  if (propertyData.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center">
-        <div className="text-white text-2xl font-bold">Loading...</div>
-      </div>
-    );
-  }
+  const totalCultivableArea = Object.values(propertyData.cultivableArea).reduce((a, b) => a + b, 0)
+  const totalUncultivableArea = Object.values(propertyData.uncultivableArea).reduce((a, b) => a + b, 0)
+
+  const items = [
+    {
+      title: "Location Information",
+      description: (
+        <>
+          <p><strong>Village:</strong> {propertyData.villageName}</p>
+          <p><strong>Survey No:</strong> {propertyData.surveyNo}</p>
+          <p><strong>Sub Division No:</strong> {propertyData.subDivisionNo}</p>
+          <p><strong>Taluka:</strong> {propertyData.taluka}</p>
+        </>
+      ),
+    },
+    {
+      title: "Area Overview",
+      description: (
+        <>
+          <p><strong>Total Area:</strong> {propertyData.totalArea} sq m</p>
+          <p><strong>Cultivable:</strong> {totalCultivableArea} sq m</p>
+          <p><strong>Uncultivable:</strong> {totalUncultivableArea} sq m</p>
+        </>
+      ),
+    },
+    {
+      title: "Cultivable Area Breakdown",
+      description: (
+        <>
+          {Object.entries(propertyData.cultivableArea).map(([key, value]) => (
+            <p key={key}><strong>{key}:</strong> {value} sq m</p>
+          ))}
+        </>
+      ),
+    },
+    {
+      title: "Uncultivable Area Breakdown",
+      description: (
+        <>
+          {Object.entries(propertyData.uncultivableArea).map(([key, value]) => (
+            <p key={key}><strong>{key.replace('class', 'Class ')}:</strong> {value} sq m</p>
+          ))}
+        </>
+      ),
+    },
+    {
+      title: "Owners and Tenants",
+      description: (
+        <>
+          {propertyData.owners.map((owner, index) => (
+            <div key={index} className="mb-2">
+              <p><strong>Owner:</strong> {owner.name}</p>
+              <p><strong>Mutation:</strong> {owner.mutation}</p>
+              <p><strong>Khata:</strong> {owner.khataNo}</p>
+              <p><strong>Tenants:</strong> {owner.tenants.join(', ')}</p>
+            </div>
+          ))}
+        </>
+      ),
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-green-400 to-blue-500 p-8">
-      <div className="container mx-auto bg-white rounded-lg shadow-xl p-6">
-        <nav className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Property Record Display</h1>
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/">Home</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Display Data</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </nav>
-
-        {propertyData.map((data, index) => (
-          <Card key={index} className="mb-6 hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="bg-blue-100">
-              <CardTitle className="text-2xl text-blue-800">Property Details {index + 1}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableBody>
-                  {Object.entries(data).map(([key, value]) => (
-                    <TableRow key={key} className="hover:bg-gray-100">
-                      <TableCell className="font-medium text-gray-700">{key}</TableCell>
-                      <TableCell className="text-gray-900">{value !== null ? String(value) : 'N/A'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+    <div className="container mx-auto p-4 font-inter text-lg">
+      <nav className="flex justify-between items-center mb-4">
+        <h1 className="text-4xl font-bold">LANDMASTER</h1>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <IconChevronRight className="h-4 w-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Property Details</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </nav>
+      <h2 className="text-3xl font-bold mb-6">Property Details</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {items.map((item, i) => (
+          <CardContainer key={i} className="inter-var">
+            <CardBody className="bg-gray-50 relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border">
+              <CardItem
+                translateZ="50"
+                className="text-2xl font-bold text-neutral-600 dark:text-white"
+              >
+                {item.title}
+              </CardItem>
+              <CardItem
+                as="div"
+                translateZ="60"
+                className="text-neutral-500 text-base mt-4 dark:text-neutral-300"
+              >
+                {item.description}
+              </CardItem>
+            </CardBody>
+          </CardContainer>
         ))}
       </div>
     </div>
-  );
+  )
 }

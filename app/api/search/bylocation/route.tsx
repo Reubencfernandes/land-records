@@ -17,6 +17,8 @@ export async function POST(req: NextRequest) {
         const [rows] = await connection.execute(
             `SELECT 
     o.name AS owner_name, 
+    o.mutation,
+    o.khata_no,
     p.taluka, 
     p.village_name, 
     p.survey_no, 
@@ -49,7 +51,45 @@ JOIN Owners o ON p.propertyID = o.propertyID
 JOIN CroppedArea ca ON p.propertyID = ca.propertyID
 LEFT JOIN Tenancy t ON o.ownerID = t.ownerID WHERE p.taluka = '${taluka}' AND p.village_name = '${village_name}' AND p.survey_no = ${survey_no} AND p.subdivision = ${sub_division}`);
 
-        return NextResponse.json(rows, { status: 200 });
+
+const formattedData = {
+    villageName: (rows as any[])[0]?.village_name ?? '',
+    surveyNo: (rows as any[])[0]?.survey_no ?? '',
+    subDivisionNo: (rows as any[])[0]?.subdivision ?? '',
+    taluka: (rows as any[])[0]?.taluka ?? '',
+    totalArea: (rows as any[])[0]?.grand_total ? parseFloat((rows as any[])[0].grand_total) : null,
+    cultivableArea: {
+        ker: parseFloat((rows as any[])[0]?.ker) || 0,
+        rice: parseFloat((rows as any[])[0]?.rice) || 0,
+        dryCrop: parseFloat((rows as any[])[0]?.dry_crop) || 0,
+        khzan: parseFloat((rows as any[])[0]?.khazan) || 0,
+        morad: parseFloat((rows as any[])[0]?.morad) || 0,
+        garden: parseFloat((rows as any[])[0]?.garden) || 0
+    },
+    uncultivableArea: {
+        classA: parseFloat((rows as any[])[0]?.class_A) || 0,
+        classB: parseFloat((rows as any[])[0]?.class_B) || 0,
+        potKarab: parseFloat((rows as any[])[0]?.pot_kharab) || 0
+    },
+    owners: [{
+        name: (rows as any[])[0]?.owner_name ?? '',
+        mutation: (rows as any[])[0]?.mutation ?? '',
+        khataNo: (rows as any[])[0]?.khata_no ?? '',
+        tenants: (rows as any[]).map(row => row.tenancy_name).filter(Boolean)
+    }],
+    croppedArea: {
+        irrigatedArea: parseFloat((rows as any[])[0]?.irrigated_area) || 0,
+        unirrigatedArea: parseFloat((rows as any[])[0]?.unirrigated_area) || 0,
+        cropName: (rows as any[])[0]?.crop_name ?? '',
+        year: (rows as any[])[0]?.year ?? null,
+        season: (rows as any[])[0]?.season ?? '',
+        cultivatorName: (rows as any[])[0]?.cultivator_name ?? '',
+        landNotAvailableForCultivation: (rows as any[])[0]?.land_not_available_for_cultivation === 1,
+        sourceOfIrrigation: (rows as any[])[0]?.source_of_irrigation ?? '',
+        remarks: (rows as any[])[0]?.remarks ?? ''
+    }
+};
+return NextResponse.json(formattedData, { status: 200 });
 
     } catch (error) {
         console.error('Error fetching land records:', error);
