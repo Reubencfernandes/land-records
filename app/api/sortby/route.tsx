@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import mysql from 'mysql2/promise';
 
 export async function POST(req: NextRequest) {
-    const { sortBy } = await req.json();
+    const { sortBy,min,max } = await req.json();
     try {
         const connection = await mysql.createConnection({
             host: 'localhost',
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         });
 
         const [rows] = await connection.execute(
-            `SELECT o.name, p.propertyID, p.grand_total FROM Property p , Owners o WHERE p.propertyID = o.propertyID ORDER BY o.name ${sortBy}`);
+            `SELECT o.name, p.propertyID, p.grand_total FROM Property p , Owners o WHERE p.propertyID = o.propertyID AND p.grand_total BETWEEN ${min} AND ${max} ORDER BY o.name ${sortBy}`);
             await connection.end();
 return NextResponse.json(rows, { status: 200 });
 

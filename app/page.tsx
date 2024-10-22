@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface Property {
   name: string;
@@ -15,33 +16,26 @@ export default function Component() {
   const [searchType, setSearchType] = useState<'name' | 'location'>('name')
   const [properties, setProperties] = useState<Property[]>([])
   const [sortBy, setSortBy] = useState<'ASC' | 'DESC'>('ASC')
-  const [minArea, setMinArea] = useState<string>('1')
-  const [maxArea, setMaxArea] = useState<string>('1000')
+  const [minArea, setMinArea] = useState<string>('0')
+  const [maxArea, setMaxArea] = useState<string>('10000')
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
 
   useEffect(() => {
-    fetchProperties()
+    if (minArea !== '' && maxArea !== '') {
+      fetchProperties()
+    }
+    setIsAdmin(localStorage.getItem('isAdmin') === 'true')
   }, [sortBy, minArea, maxArea])
 
   const fetchProperties = async () => {
     try {
-      let response;
-      if (minArea !== '' && maxArea !== '') {
-        response = await fetch('/api/minmax', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ min: minArea, max: maxArea }),
-        })
-      } else {
-        response = await fetch('/api/sortby', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ sortBy: sortBy.toLowerCase() }),
-        })
-      }
+      const response = await fetch('/api/sortby', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sortBy: sortBy.toLowerCase(), min: minArea, max: maxArea }),
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch properties')
       }
@@ -71,14 +65,34 @@ export default function Component() {
           <div className="container mx-auto px-4 py-8 h-full flex flex-col justify-between">
             <div className="flex justify-between items-center">
               <h1 className="text-4xl text-white font-bebas">LANDMASTER</h1>
-              <Button variant="outline" className="text-black border-white hover:bg-white hover:text-black font-inter">
-                Admin
-              </Button>
+              {isAdmin ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="text-black border-white hover:bg-white hover:text-black font-inter">
+                      Dashboard
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => window.location.href = '/insertdata'}>Insert Data</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.location.href = '/deletedata'}>Delete Data</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.location.href = '/viewtrigger'}>View Triggers</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.location.href = '/dummy'}>Insert Dummy</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      localStorage.setItem('isAdmin', 'false');
+                      setIsAdmin(false);
+                    }}>Logout</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="outline" className="text-black border-white hover:bg-white hover:text-black font-inter" asChild>
+                  <a href="/admin">Admin</a>
+                </Button>
+              )}
             </div>
             <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full home">
               <div className="flex gap-2">
                 <Select onValueChange={(value: string) => setSearchType(value as 'name' | 'location')}>
-                  <SelectTrigger className="w-[180px] border-none bg-white bg-opacity-20 text-black font-bold font-inter">
+                  <SelectTrigger className="w-[180px] border-none bg-white text-black font-bold font-inter">
                     <SelectValue placeholder="Search by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -89,7 +103,7 @@ export default function Component() {
                 {searchType === 'name' && (
                   <Input
                     placeholder="Enter Owner's Name"
-                    className="bg-white bg-opacity-20 text-black font-inter placeholder-black"
+                    className="bg-white text-black font-inter placeholder-black"
                   />
                 )}
                 <Button variant="secondary" className="font-inter bg-black text-white font-bold">Search</Button>
@@ -97,22 +111,22 @@ export default function Component() {
               {searchType === 'location' && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   <Input 
-                    className="bg-white border-none bg-opacity-20 text-black font-inter placeholder-black" 
+                    className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Taluka"
                     type="text"
                   />
                   <Input 
-                    className="bg-white border-none bg-opacity-20 text-black font-inter placeholder-black" 
+                    className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Village Name" 
                     type="text"
                   />
                   <Input 
-                    className="bg-white border-none bg-opacity-20 text-black font-inter placeholder-black" 
+                    className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Survey No" 
                     type="number"
                   />
                   <Input 
-                    className="bg-white border-none bg-opacity-20 text-black font-inter placeholder-black" 
+                    className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Sub Division" 
                     type="number"
                   />
