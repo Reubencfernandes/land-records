@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import mysql from 'mysql2/promise';
 
 export async function POST(req: NextRequest) {
     const body = await req.json();
-    console.log("API",body);
-    const { name } = body;
-
+    const { propertyID } = body;
+    console.log(propertyID);
     try {
         const connection = await mysql.createConnection({
             host: 'localhost',
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
             database: 'property_records'
         });
 
-        const [rows] = await connection.query(
+        const [rows] = await connection.execute(
             `SELECT 
     o.name AS owner_name, 
     o.mutation,
@@ -49,10 +49,10 @@ export async function POST(req: NextRequest) {
 FROM Property p
 JOIN Owners o ON p.propertyID = o.propertyID
 JOIN CroppedArea ca ON p.propertyID = ca.propertyID
-LEFT JOIN Tenancy t ON o.ownerID = t.ownerID
-WHERE o.name = '${name}';
-`);
-        const formattedData = {
+LEFT JOIN Tenancy t ON o.ownerID = t.ownerID WHERE p.propertyID = '${propertyID}'`);
+
+
+const formattedData = {
     villageName: (rows as any[])[0]?.village_name ?? '',
     surveyNo: (rows as any[])[0]?.survey_no ?? '',
     subDivisionNo: (rows as any[])[0]?.subdivision ?? '',
@@ -92,9 +92,7 @@ WHERE o.name = '${name}';
     }
 };
 await connection.end();
-
-        // Return the formatted data as JSON along with a redirect URL
-        return NextResponse.json(formattedData, { status: 200 });
+return NextResponse.json(formattedData, { status: 200 });
 
     } catch (error) {
         console.error('Error fetching land records:', error);

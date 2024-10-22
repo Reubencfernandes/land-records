@@ -19,8 +19,37 @@ export default function DeleteData() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement the delete logic here
-    console.log('Delete data:', deleteMethod === 'propertyId' ? { propertyId } : { taluka, villageName, surveyNo, subDiv });
+    try {
+      let response;
+      if (deleteMethod === 'propertyId') {
+        response = await fetch('/api/delete/byproperty', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ propertyID: propertyId }),
+        });
+      } else {
+        response = await fetch('/api/delete/bylocation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ taluka, villageName, surveyNo, subDiv }),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to delete property');
+      }
+
+      const result = await response.json();
+      console.log(result.message);
+      // TODO: Add user feedback (e.g., success message)
+    } catch (error) {
+      console.error('Error deleting property:', error);
+      // TODO: Add user feedback (e.g., error message)
+    }
   };
 
   return (

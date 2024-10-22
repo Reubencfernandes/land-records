@@ -5,11 +5,50 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 interface Property {
   name: string;
   propertyID: string;
   grand_total: string;
+}
+
+interface PropertyDetails {
+  villageName: string;
+  surveyNo: string;
+  subDivisionNo: string;
+  taluka: string;
+  totalArea: number;
+  cultivableArea: {
+    ker: number;
+    rice: number;
+    dryCrop: number;
+    khzan: number;
+    morad: number;
+    garden: number;
+  };
+  uncultivableArea: {
+    potKarab: number;
+    classA: number;
+    classB: number;
+  };
+  owners: {
+    name: string;
+    mutation: string;
+    khataNo: string;
+    tenants: string[];
+  }[];
+  croppedArea: {
+    irrigatedArea: number;
+    unirrigatedArea: number;
+    cropName: string;
+    year: number;
+    season: string;
+    cultivatorName: string;
+    landNotAvailableForCultivation: boolean;
+    sourceOfIrrigation: string;
+    remarks: string;
+  };
 }
 
 export default function Component() {
@@ -19,6 +58,13 @@ export default function Component() {
   const [minArea, setMinArea] = useState<string>('0')
   const [maxArea, setMaxArea] = useState<string>('10000')
   const [isAdmin, setIsAdmin] = useState<boolean>(false)
+  const [searchName, setSearchName] = useState<string>('')
+  const [taluka, setTaluka] = useState<string>('')
+  const [villageName, setVillageName] = useState<string>('')
+  const [surveyNo, setSurveyNo] = useState<string>('')
+  const [subDivision, setSubDivision] = useState<string>('')
+  const [selectedProperty, setSelectedProperty] = useState<PropertyDetails | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   useEffect(() => {
     if (minArea !== '' && maxArea !== '') {
@@ -46,6 +92,46 @@ export default function Component() {
     }
   }
 
+  const handleSearch = async () => {
+    if (searchType === 'name' && !searchName.trim()) {
+      console.log('Please enter a name to search');
+      return;
+    }
+    if (searchType === 'location' && !taluka.trim() && !villageName.trim() && !surveyNo.trim() && !subDivision.trim()) {
+      console.log('Please enter at least one location detail to search');
+      return;
+    }
+
+    try {
+      let response;
+      if (searchType === 'name') {
+        response = await fetch('/api/search/byname', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: searchName }),
+        });
+      } else {
+        response = await fetch('/api/search/bylocation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({taluka, villageName, surveyNo, subDivision}),
+        });
+      }
+      if (!response.ok) {
+        throw new Error('Failed to fetch properties');
+      }
+      const data = await response.json();
+      setSelectedProperty(data);
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Error searching properties:', error);
+    }
+  }
+
   const handleMinAreaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMinArea(e.target.value)
   }
@@ -56,6 +142,26 @@ export default function Component() {
 
   const handleSortChange = (value: string) => {
     setSortBy(value.toUpperCase() as 'ASC' | 'DESC')
+  }
+
+  const handleCardClick = async (propertyID: string) => {
+    try {
+      const response = await fetch('/api/search/byid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ propertyID: propertyID }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch property details');
+      }
+      const data = await response.json();
+      setSelectedProperty(data);
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching property details:', error);
+    }
   }
 
   return (
@@ -104,9 +210,11 @@ export default function Component() {
                   <Input
                     placeholder="Enter Owner's Name"
                     className="bg-white text-black font-inter placeholder-black"
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
                   />
                 )}
-                <Button variant="secondary" className="font-inter bg-black text-white font-bold">Search</Button>
+                <Button variant="secondary" className="font-inter bg-black text-white font-bold" onClick={handleSearch}>Search</Button>
               </div>
               {searchType === 'location' && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -114,21 +222,29 @@ export default function Component() {
                     className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Taluka"
                     type="text"
+                    value={taluka}
+                    onChange={(e) => setTaluka(e.target.value)}
                   />
                   <Input 
                     className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Village Name" 
                     type="text"
+                    value={villageName}
+                    onChange={(e) => setVillageName(e.target.value)}
                   />
                   <Input 
                     className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Survey No" 
                     type="number"
+                    value={surveyNo}
+                    onChange={(e) => setSurveyNo(e.target.value)}
                   />
                   <Input 
                     className="bg-white border-none text-black font-inter placeholder-black" 
                     placeholder="Sub Division" 
                     type="number"
+                    value={subDivision}
+                    onChange={(e) => setSubDivision(e.target.value)}
                   />
                 </div>
               )}
@@ -164,7 +280,7 @@ export default function Component() {
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {properties.map((property,index) => (
-            <Card key={index} className="h-[350px] flex flex-col">
+            <Card key={index} className="h-[350px] flex flex-col cursor-pointer" onClick={() => handleCardClick(property.propertyID)}>
               <img
                 src="https://cdn.midjourney.com/17d53012-ec3a-4dc7-9fdf-a8d2fc02e999/0_0.png"
                 alt="Scenic landscape"
@@ -186,6 +302,58 @@ export default function Component() {
           ))}
         </div>
       </main>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="font-inter text-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Property Details</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            {selectedProperty && (
+              <div>
+                <p><strong>Village Name:</strong> {selectedProperty.villageName}</p>
+                <p><strong>Survey No:</strong> {selectedProperty.surveyNo}</p>
+                <p><strong>Sub Division No:</strong> {selectedProperty.subDivisionNo}</p>
+                <p><strong>Taluka:</strong> {selectedProperty.taluka}</p>
+                <p><strong>Total Area:</strong> {selectedProperty.totalArea} sq m</p>
+                <h3 className="text-xl font-bold mt-4 mb-2">Cultivable Area:</h3>
+                <ul>
+                  <li>Ker: {selectedProperty.cultivableArea.ker} sq m</li>
+                  <li>Rice: {selectedProperty.cultivableArea.rice} sq m</li>
+                  <li>Dry Crop: {selectedProperty.cultivableArea.dryCrop} sq m</li>
+                  <li>Khzan: {selectedProperty.cultivableArea.khzan} sq m</li>
+                  <li>Morad: {selectedProperty.cultivableArea.morad} sq m</li>
+                  <li>Garden: {selectedProperty.cultivableArea.garden} sq m</li>
+                </ul>
+                <h3 className="text-xl font-bold mt-4 mb-2">Uncultivable Area:</h3>
+                <ul>
+                  <li>Pot Karab: {selectedProperty.uncultivableArea.potKarab} sq m</li>
+                  <li>Class A: {selectedProperty.uncultivableArea.classA} sq m</li>
+                  <li>Class B: {selectedProperty.uncultivableArea.classB} sq m</li>
+                </ul>
+                <h3 className="text-xl font-bold mt-4 mb-2">Owners:</h3>
+                {selectedProperty.owners.map((owner, index) => (
+                  <div key={index}>
+                    <p>Name: {owner.name}</p>
+                    <p>Mutation: {owner.mutation}</p>
+                    <p>Khata No: {owner.khataNo}</p>
+                    <p>Tenants: {owner.tenants.join(', ')}</p>
+                  </div>
+                ))}
+                <h3 className="text-xl font-bold mt-4 mb-2">Cropped Area:</h3>
+                <p>Irrigated Area: {selectedProperty.croppedArea.irrigatedArea} sq m</p>
+                <p>Unirrigated Area: {selectedProperty.croppedArea.unirrigatedArea} sq m</p>
+                <p>Crop Name: {selectedProperty.croppedArea.cropName}</p>
+                <p>Year: {selectedProperty.croppedArea.year}</p>
+                <p>Season: {selectedProperty.croppedArea.season}</p>
+                <p>Cultivator Name: {selectedProperty.croppedArea.cultivatorName}</p>
+                <p>Land Not Available For Cultivation: {selectedProperty.croppedArea.landNotAvailableForCultivation ? 'Yes' : 'No'}</p>
+                <p>Source of Irrigation: {selectedProperty.croppedArea.sourceOfIrrigation}</p>
+                <p>Remarks: {selectedProperty.croppedArea.remarks}</p>
+              </div>
+            )}
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
