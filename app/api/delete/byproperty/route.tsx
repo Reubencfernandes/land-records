@@ -24,10 +24,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Delete related records
-    await connection.execute('DELETE FROM CroppedArea WHERE propertyID = ?', [propertyID]);
-    await connection.execute('DELETE FROM Tenancy WHERE ownerID IN (SELECT ownerID FROM Owners WHERE propertyID = ?)', [propertyID]);
-    await connection.execute('DELETE FROM Owners WHERE propertyID = ?', [propertyID]);
-    await connection.execute('DELETE FROM Property WHERE propertyID = ?', [propertyID]);
+    await connection.execute(`DELETE FROM CroppedArea WHERE propertyID = '${propertyID}'`);
+    await connection.execute(`DELETE FROM Tenancy WHERE ownerID IN (SELECT ownerID FROM Owners WHERE propertyID = '${propertyID}')`);
+    await connection.execute(`DELETE FROM Owners WHERE propertyID = '${propertyID}'`);
+    await connection.execute(`DELETE FROM Property WHERE propertyID = '${propertyID}'`);
 
     await connection.end();
     return NextResponse.json({ message: 'Property and related records deleted successfully' }, { status: 200 });
