@@ -38,6 +38,17 @@ interface Owner {
 
 export default function InsertData() {
   const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const adminStatus = localStorage.getItem('isAdmin');
+    if (adminStatus !== 'true') {
+      router.push('/'); // Redirect to home if not admin
+    } else {
+      setIsAdmin(true);
+    }
+  }, [router]);
+
   const [propertyid, setPropertyid] = useState('');
   const [croppedareaid, setCroppedareaid] = useState('');
   // Property table states
@@ -80,11 +91,13 @@ export default function InsertData() {
   const [unirrigatedArea, setUnirrigatedArea] = useState(0);
 
   useEffect(() => {
-    const newPropertyId = uuidv4();
-    setPropertyid(newPropertyId);
-    setCroppedareaid(nanoid(10));
-    setOwners(prevOwners => prevOwners.map(owner => ({...owner, ownerid: nanoid(), propertyid: newPropertyId})));
-  }, []);
+    if (isAdmin) {
+      const newPropertyId = uuidv4();
+      setPropertyid(newPropertyId);
+      setCroppedareaid(nanoid(10));
+      setOwners(prevOwners => prevOwners.map(owner => ({...owner, ownerid: nanoid(), propertyid: newPropertyId})));
+    }
+  }, [isAdmin]);
 
   const addOwner = () => {
     setOwners([...owners, {
@@ -240,18 +253,22 @@ export default function InsertData() {
     router.push('/');
   };
 
+  if (!isAdmin) {
+    return null; // Or you can return a loading component
+  }
+
   return (
-    <div className="container mx-auto p-4">
-      <nav className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Property Record</h1>
-        <Breadcrumb>
+    <div className="container mx-auto p-4 font-inter">
+      <nav className="flex items-center justify-between mb-6 bg-black text-white p-4">
+        <h1 className="text-4xl font-bebas">LANDMASTER</h1>
+        <Breadcrumb className="text-white">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+              <BreadcrumbLink href="/" className="text-white hover:text-gray-400">Home</BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator />
+            <BreadcrumbSeparator className="text-white" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Insert Data</BreadcrumbPage>
+              <BreadcrumbPage className="text-white">Insert Data</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -264,23 +281,23 @@ export default function InsertData() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="propertyid">Property ID</Label>
-              <Input id="propertyid" value={propertyid} readOnly />
+              <Input id="propertyid" value={propertyid} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="villageName">Area Name</Label>
-              <Input id="villageName" value={villageName} onChange={(e) => setVillageName(e.target.value)}  required/>
+              <Input id="villageName" value={villageName} onChange={(e) => setVillageName(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="surveyNo">Survey No</Label>
-              <Input id="surveyNo" type="number" value={surveyNo} min={0} max={1000000000} onChange={(e) => setSurveyNo(Number(e.target.value))}  required/>
+              <Input id="surveyNo" type="number" value={surveyNo} min={0} max={1000000000} onChange={(e) => setSurveyNo(Number(e.target.value))} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="taluka">Taluka</Label>
-              <Input id="taluka" value={taluka} onChange={(e) => setTaluka(e.target.value)} required/>
+              <Input id="taluka" value={taluka} onChange={(e) => setTaluka(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="subdivision">Subdivision</Label>
-              <Input id="subdivision"type="number" value={subdivision} min={0} max={1000000000} onChange={(e) => setSubdivision(Number(e.target.value))}  required/>
+              <Input id="subdivision" type="number" value={subdivision} min={0} max={1000000000} onChange={(e) => setSubdivision(Number(e.target.value))} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ker">KER</Label>
@@ -322,27 +339,27 @@ export default function InsertData() {
         </div>
 
         {owners.map((owner, ownerIndex) => (
-          <Card key={ownerIndex}>
+          <Card key={ownerIndex} className="mb-6">
             <CardHeader>
               <CardTitle>Owner {ownerIndex + 1}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor={`propertyid-${ownerIndex}`}>Property ID</Label>
-                  <Input id={`propertyid-${ownerIndex}`} value={propertyid} readOnly />
+                  <Input id={`propertyid-${ownerIndex}`} value={propertyid} readOnly className="bg-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`ownerid-${ownerIndex}`}>Owner ID</Label>
-                  <Input id={`ownerid-${ownerIndex}`} value={owner.ownerid} readOnly />
+                  <Input id={`ownerid-${ownerIndex}`} value={owner.ownerid} readOnly className="bg-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`ownerName-${ownerIndex}`}>Owner Name</Label>
-                  <Input id={`ownerName-${ownerIndex}`} value={owner.ownerName} onChange={(e) => handleOwnerChange(ownerIndex, 'ownerName', e.target.value)}  required/>
+                  <Input id={`ownerName-${ownerIndex}`} value={owner.ownerName} onChange={(e) => handleOwnerChange(ownerIndex, 'ownerName', e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`mutation-${ownerIndex}`}>Mutation</Label>
-                  <Input id={`mutation-${ownerIndex}`}  type="number" value={owner.mutation} min={0} max={1000000000}onChange={(e) => handleOwnerChange(ownerIndex, 'mutation', e.target.value)} />
+                  <Input id={`mutation-${ownerIndex}`} type="number" value={owner.mutation} min={0} max={1000000000} onChange={(e) => handleOwnerChange(ownerIndex, 'mutation', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`khataNo-${ownerIndex}`}>Khata No</Label>
@@ -355,18 +372,18 @@ export default function InsertData() {
               </div>
               
               {owner.tenants.map((tenant, tenantIndex) => (
-                <Card key={tenantIndex}>
+                <Card key={tenantIndex} className="mt-4">
                   <CardHeader>
                     <CardTitle>Tenant {tenantIndex + 1}</CardTitle>
                   </CardHeader>
                   <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-2">
+                    <div className="space-y-2">
                       <Label htmlFor={`ownerid-${ownerIndex}-${tenantIndex}`}>Owner ID</Label>
-                      <Input id={`ownerid-${ownerIndex}-${tenantIndex}`} value={owner.ownerid} readOnly/>
+                      <Input id={`ownerid-${ownerIndex}-${tenantIndex}`} value={owner.ownerid} readOnly className="bg-gray-100" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor={`tenancyid-${ownerIndex}-${tenantIndex}`}>Tenancy ID</Label>
-                      <Input id={`tenancyid-${ownerIndex}-${tenantIndex}`} value={tenant.tenancyid} readOnly />
+                      <Input id={`tenancyid-${ownerIndex}-${tenantIndex}`} value={tenant.tenancyid} readOnly className="bg-gray-100" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor={`tenantName-${ownerIndex}-${tenantIndex}`}>Tenant Name</Label>
@@ -387,11 +404,11 @@ export default function InsertData() {
                   </CardContent>
                 </Card>
               ))}
-              <Button type="button" onClick={() => addTenant(ownerIndex)}>Add Tenant</Button>
+              <Button type="button" onClick={() => addTenant(ownerIndex)} className="mt-4">Add Tenant</Button>
             </CardContent>
           </Card>
         ))}
-        <Button type="button" onClick={addOwner}>Add Owner</Button>
+        <Button type="button" onClick={addOwner} className="mb-6">Add Owner</Button>
 
         <Card>
           <CardHeader>
@@ -400,11 +417,11 @@ export default function InsertData() {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="propertyid">Property ID</Label>
-              <Input id="propertyid" value={propertyid} readOnly />
+              <Input id="propertyid" value={propertyid} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="croppedareaid">Cropped Area ID</Label>
-              <Input id="croppedareaid" value={croppedareaid} readOnly />
+              <Input id="croppedareaid" value={croppedareaid} readOnly className="bg-gray-100" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="irrigatedArea">Irrigated Area</Label>
@@ -444,7 +461,7 @@ export default function InsertData() {
             </div>
           </CardContent>
         </Card>
-        <Button type="submit">Submit</Button>
+        <Button type="submit" className="w-full">Submit</Button>
       </form>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
@@ -14,8 +15,15 @@ export default function ViewTrigger() {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin');
+    if (isAdmin !== 'true') {
+      router.push('/');
+      return;
+    }
+
     const fetchLogEntries = async () => {
       try {
         const response = await fetch('/api/showtrigger');
@@ -33,21 +41,25 @@ export default function ViewTrigger() {
     };
 
     fetchLogEntries();
-  }, []);
+  }, [router]);
+
+  if (typeof window !== 'undefined' && localStorage.getItem('isAdmin') !== 'true') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 bg-black text-white">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">View Triggers</h1>
+          <h1 className="text-4xl font-bebas">LANDMASTER</h1>
           <Breadcrumb>
-            <BreadcrumbList>
+            <BreadcrumbList className="font-inter">
               <BreadcrumbItem>
-                <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                <BreadcrumbLink href="/" className="hover:text-gray-400 text-white">Home</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>View Triggers</BreadcrumbPage>
+                <BreadcrumbPage className='text-white'>View Triggers</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

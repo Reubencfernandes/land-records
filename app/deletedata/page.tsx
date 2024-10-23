@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,12 +11,20 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import Link from 'next/link';
 
 export default function DeleteData() {
+  const router = useRouter();
   const [deleteMethod, setDeleteMethod] = useState<'propertyId' | 'details'>('propertyId');
   const [propertyId, setPropertyId] = useState('');
   const [taluka, setTaluka] = useState('');
   const [villageName, setVillageName] = useState('');
   const [surveyNo, setSurveyNo] = useState('');
   const [subDiv, setSubDiv] = useState('');
+
+  useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin');
+    if (isAdmin !== 'true') {
+      router.push('/');
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,16 +63,16 @@ export default function DeleteData() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 bg-black text-white p-4">
         <h1 className="text-4xl font-bebas">LANDMASTER</h1>
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="font-inter">
             <BreadcrumbItem>
-              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+              <BreadcrumbLink href="/" className="text-white hover:text-gray-400">Home</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Delete Data</BreadcrumbPage>
+              <BreadcrumbPage className="text-white">Delete Data</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

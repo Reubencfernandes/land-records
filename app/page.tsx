@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface Property {
   name: string;
@@ -179,10 +180,11 @@ export default function Component() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => window.location.href = '/api/create'}>Create Database</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => window.location.href = '/insertdata'}>Insert Data</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => window.location.href = '/deletedata'}>Delete Data</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => window.location.href = '/viewtrigger'}>View Triggers</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => window.location.href = '/dummy'}>Insert Dummy</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.location.href = '/api/dummy'}>Insert Dummy</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => {
                       localStorage.setItem('isAdmin', 'false');
                       setIsAdmin(false);
@@ -303,55 +305,57 @@ export default function Component() {
         </div>
       </main>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="font-inter text-lg">
+        <DialogContent className="font-inter text-lg max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">Property Details</DialogTitle>
           </DialogHeader>
-          <DialogDescription>
-            {selectedProperty && (
-              <div>
-                <p><strong>Village Name:</strong> {selectedProperty.villageName}</p>
-                <p><strong>Survey No:</strong> {selectedProperty.surveyNo}</p>
-                <p><strong>Sub Division No:</strong> {selectedProperty.subDivisionNo}</p>
-                <p><strong>Taluka:</strong> {selectedProperty.taluka}</p>
-                <p><strong>Total Area:</strong> {selectedProperty.totalArea} sq m</p>
-                <h3 className="text-xl font-bold mt-4 mb-2">Cultivable Area:</h3>
-                <ul>
-                  <li>Ker: {selectedProperty.cultivableArea.ker} sq m</li>
-                  <li>Rice: {selectedProperty.cultivableArea.rice} sq m</li>
-                  <li>Dry Crop: {selectedProperty.cultivableArea.dryCrop} sq m</li>
-                  <li>Khzan: {selectedProperty.cultivableArea.khzan} sq m</li>
-                  <li>Morad: {selectedProperty.cultivableArea.morad} sq m</li>
-                  <li>Garden: {selectedProperty.cultivableArea.garden} sq m</li>
-                </ul>
-                <h3 className="text-xl font-bold mt-4 mb-2">Uncultivable Area:</h3>
-                <ul>
-                  <li>Pot Karab: {selectedProperty.uncultivableArea.potKarab} sq m</li>
-                  <li>Class A: {selectedProperty.uncultivableArea.classA} sq m</li>
-                  <li>Class B: {selectedProperty.uncultivableArea.classB} sq m</li>
-                </ul>
-                <h3 className="text-xl font-bold mt-4 mb-2">Owners:</h3>
-                {selectedProperty.owners.map((owner, index) => (
-                  <div key={index}>
-                    <p>Name: {owner.name}</p>
-                    <p>Mutation: {owner.mutation}</p>
-                    <p>Khata No: {owner.khataNo}</p>
-                    <p>Tenants: {owner.tenants.join(', ')}</p>
-                  </div>
-                ))}
-                <h3 className="text-xl font-bold mt-4 mb-2">Cropped Area:</h3>
-                <p>Irrigated Area: {selectedProperty.croppedArea.irrigatedArea} sq m</p>
-                <p>Unirrigated Area: {selectedProperty.croppedArea.unirrigatedArea} sq m</p>
-                <p>Crop Name: {selectedProperty.croppedArea.cropName}</p>
-                <p>Year: {selectedProperty.croppedArea.year}</p>
-                <p>Season: {selectedProperty.croppedArea.season}</p>
-                <p>Cultivator Name: {selectedProperty.croppedArea.cultivatorName}</p>
-                <p>Land Not Available For Cultivation: {selectedProperty.croppedArea.landNotAvailableForCultivation ? 'Yes' : 'No'}</p>
-                <p>Source of Irrigation: {selectedProperty.croppedArea.sourceOfIrrigation}</p>
-                <p>Remarks: {selectedProperty.croppedArea.remarks}</p>
-              </div>
-            )}
-          </DialogDescription>
+          <ScrollArea className="flex-grow overflow-y-auto">
+            <DialogDescription>
+              {selectedProperty && (
+                <div>
+                  <p><strong>Village Name:</strong> {selectedProperty.villageName}</p>
+                  <p><strong>Survey No:</strong> {selectedProperty.surveyNo}</p>
+                  <p><strong>Sub Division No:</strong> {selectedProperty.subDivisionNo}</p>
+                  <p><strong>Taluka:</strong> {selectedProperty.taluka}</p>
+                  <p><strong>Total Area:</strong> {selectedProperty.totalArea} sq m</p>
+                  <h3 className="text-xl font-bold mt-4 mb-2">Cultivable Area:</h3>
+                  <ul>
+                    <li>Ker: {selectedProperty.cultivableArea.ker} sq m</li>
+                    <li>Rice: {selectedProperty.cultivableArea.rice} sq m</li>
+                    <li>Dry Crop: {selectedProperty.cultivableArea.dryCrop} sq m</li>
+                    <li>Khzan: {selectedProperty.cultivableArea.khzan} sq m</li>
+                    <li>Morad: {selectedProperty.cultivableArea.morad} sq m</li>
+                    <li>Garden: {selectedProperty.cultivableArea.garden} sq m</li>
+                  </ul>
+                  <h3 className="text-xl font-bold mt-4 mb-2">Uncultivable Area:</h3>
+                  <ul>
+                    <li>Pot Karab: {selectedProperty.uncultivableArea.potKarab} sq m</li>
+                    <li>Class A: {selectedProperty.uncultivableArea.classA} sq m</li>
+                    <li>Class B: {selectedProperty.uncultivableArea.classB} sq m</li>
+                  </ul>
+                  <h3 className="text-xl font-bold mt-4 mb-2">Owners:</h3>
+                  {selectedProperty.owners.map((owner, index) => (
+                    <div key={index}>
+                      <p>Name: {owner.name}</p>
+                      <p>Mutation: {owner.mutation}</p>
+                      <p>Khata No: {owner.khataNo}</p>
+                      <p>Tenants: {owner.tenants.join(', ')}</p>
+                    </div>
+                  ))}
+                  <h3 className="text-xl font-bold mt-4 mb-2">Cropped Area:</h3>
+                  <p>Irrigated Area: {selectedProperty.croppedArea.irrigatedArea} sq m</p>
+                  <p>Unirrigated Area: {selectedProperty.croppedArea.unirrigatedArea} sq m</p>
+                  <p>Crop Name: {selectedProperty.croppedArea.cropName}</p>
+                  <p>Year: {selectedProperty.croppedArea.year}</p>
+                  <p>Season: {selectedProperty.croppedArea.season}</p>
+                  <p>Cultivator Name: {selectedProperty.croppedArea.cultivatorName}</p>
+                  <p>Land Not Available For Cultivation: {selectedProperty.croppedArea.landNotAvailableForCultivation ? 'Yes' : 'No'}</p>
+                  <p>Source of Irrigation: {selectedProperty.croppedArea.sourceOfIrrigation}</p>
+                  <p>Remarks: {selectedProperty.croppedArea.remarks}</p>
+                </div>
+              )}
+            </DialogDescription>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>

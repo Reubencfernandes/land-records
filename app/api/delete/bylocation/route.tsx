@@ -20,7 +20,25 @@ export async function POST(req: NextRequest) {
 
     if ((propertyRows as any[]).length === 0) {
       await connection.end();
-      return NextResponse.json({ message: 'Property not found' }, { status: 404 });
+      return new NextResponse(
+        `<html>
+          <head>
+          <title>Land Records</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          </head>
+          <body class="flex items-center justify-center h-screen bg-gray-100">
+            <div class="text-center">
+              <h1 class="text-2xl font-bold mb-4">Property Not Found</h1>
+              <p class="mb-4">The specified property could not be found.</p>
+              <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+            </div>
+          </body>
+        </html>`,
+        {
+          status: 404,
+          headers: { 'Content-Type': 'text/html' },
+        }
+      );
     }
 
     const propertyID = (propertyRows as any[])[0].propertyID;
@@ -33,9 +51,45 @@ export async function POST(req: NextRequest) {
 
     await connection.end();
 
-    return NextResponse.json({ message: 'Property and related records deleted successfully' }, { status: 200 });
+    return new NextResponse(
+      `<html>
+        <head>
+        <title>Land Records</title>
+          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body class="flex items-center justify-center h-screen bg-gray-100">
+          <div class="text-center">
+            <h1 class="text-2xl font-bold mb-4">Property Deleted</h1>
+            <p class="mb-4">Property and related records deleted successfully</p>
+            <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+          </div>
+        </body>
+      </html>`,
+      {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
+      }
+    );
   } catch (error) {
     console.error('Error deleting property and related records:', error);
-    return NextResponse.json({ message: 'Error deleting property and related records', error }, { status: 500 });
+    return new NextResponse(
+      `<html>
+        <head>
+        <title>Land Records</title>
+          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body class="flex items-center justify-center h-screen bg-gray-100">
+          <div class="text-center">
+            <h1 class="text-2xl font-bold mb-4">Error</h1>
+            <p class="mb-4">Error deleting property and related records</p>
+            <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+          </div>
+        </body>
+      </html>`,
+      {
+        status: 500,
+        headers: { 'Content-Type': 'text/html' },
+      }
+    );
   }
 }

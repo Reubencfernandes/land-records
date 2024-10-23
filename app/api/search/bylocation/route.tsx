@@ -14,48 +14,14 @@ export async function POST(req: NextRequest) {
         });
 
         const [rows] = await connection.execute(
-            `SELECT 
-    o.name AS owner_name, 
-    o.mutation,
-    o.khata_no,
-    p.taluka, 
-    p.village_name, 
-    p.survey_no, 
-    p.subdivision, 
-    p.ker, 
-    p.rice, 
-    p.dry_crop, 
-    p.khazan, 
-    p.morad, 
-    p.garden, 
-    p.total_uncultivable_area, 
-    p.pot_kharab, 
-    p.class_A, 
-    p.class_B, 
-    p.total_cultivable_area, 
-    p.grand_total, 
-    t.name AS tenancy_name, 
-    t.tenancyID,
-    ca.irrigated_area,
-    ca.unirrigated_area,
-    ca.crop_name,
-    ca.year,
-    ca.season,
-    ca.cultivator_name,
-    ca.land_not_available_for_cultivation,
-    ca.source_of_irrigation,
-    ca.remarks 
-FROM Property p
-JOIN Owners o ON p.propertyID = o.propertyID
-JOIN CroppedArea ca ON p.propertyID = ca.propertyID
-LEFT JOIN Tenancy t ON o.ownerID = t.ownerID WHERE p.taluka = '${taluka}' AND p.village_name = '${villageName}' AND p.survey_no = ${surveyNo} AND p.subdivision = ${subDivision}`);
+            `SELECT * FROM property_details WHERE p.taluka = '${taluka}' AND p.village_name = '${villageName}' AND p.survey_no = ${surveyNo} AND p.subdivision = ${subDivision}`);
 
 
         const formattedData = {
-            villageName: (rows as any[])[0]?.village_name ?? '',
-            surveyNo: (rows as any[])[0]?.survey_no ?? '',
-            subDivisionNo: (rows as any[])[0]?.subdivision ?? '',
-            taluka: (rows as any[])[0]?.taluka ?? '',
+            villageName: (rows as any[])[0]?.village_name ?? 'N/A',
+            surveyNo: (rows as any[])[0]?.survey_no ?? 'N/A',
+            subDivisionNo: (rows as any[])[0]?.subdivision ?? 'N/A',
+            taluka: (rows as any[])[0]?.taluka ?? 'N/A',
             total_uncultivable_area: (rows as any[])[0]?.total_uncultivable_area ?? 0,
             total_cultivable_area: (rows as any[])[0]?.total_cultivable_area ?? 0,
             totalArea: (rows as any[])[0]?.grand_total ? parseFloat((rows as any[])[0].grand_total) : null,
@@ -73,21 +39,21 @@ LEFT JOIN Tenancy t ON o.ownerID = t.ownerID WHERE p.taluka = '${taluka}' AND p.
                 potKarab: parseFloat((rows as any[])[0]?.pot_kharab) || 0
             },
             owners: [{
-                name: (rows as any[])[0]?.owner_name ?? '',
-                mutation: (rows as any[])[0]?.mutation ?? '',
-                khataNo: (rows as any[])[0]?.khata_no ?? '',
+                name: (rows as any[])[0]?.owner_name ?? 'N/A',
+                mutation: (rows as any[])[0]?.mutation ?? 'N/A',
+                khataNo: (rows as any[])[0]?.khata_no ?? 'N/A',
                 tenants: (rows as any[]).map(row => row.tenancy_name).filter(Boolean)
             }],
             croppedArea: {
                 irrigatedArea: parseFloat((rows as any[])[0]?.irrigated_area) || 0,
                 unirrigatedArea: parseFloat((rows as any[])[0]?.unirrigated_area) || 0,
-                cropName: (rows as any[])[0]?.crop_name ?? '',
+                cropName: (rows as any[])[0]?.crop_name ?? 'N/A',
                 year: (rows as any[])[0]?.year ?? null,
-                season: (rows as any[])[0]?.season ?? '',
-                cultivatorName: (rows as any[])[0]?.cultivator_name ?? '',
+                season: (rows as any[])[0]?.season ?? 'N/A',
+                cultivatorName: (rows as any[])[0]?.cultivator_name ?? 'N/A',
                 landNotAvailableForCultivation: (rows as any[])[0]?.land_not_available_for_cultivation === 1,
-                sourceOfIrrigation: (rows as any[])[0]?.source_of_irrigation ?? '',
-                remarks: (rows as any[])[0]?.remarks ?? ''
+                sourceOfIrrigation: (rows as any[])[0]?.source_of_irrigation ?? 'N/A',
+                remarks: (rows as any[])[0]?.remarks ?? 'N/A'
             }
         };
         await connection.end();

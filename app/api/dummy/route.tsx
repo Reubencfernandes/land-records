@@ -7,8 +7,35 @@ export async function GET() {
       host: 'localhost',
       user: 'root',
       password: '',
-      database: 'Property_Records',
     });
+
+    // Check if database exists
+    const [rows] = await connection.execute("SHOW DATABASES LIKE 'Property_Records'");
+    if (Array.isArray(rows) && rows.length === 0) {
+      await connection.end();
+      return new NextResponse(
+        `<html>
+          <head>
+            <title>Land Records</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          </head>
+          <body class="flex items-center justify-center h-screen bg-gray-100">
+            <div class="text-center">
+              <h1 class="text-2xl font-bold mb-4">Database Error</h1>
+              <p class="mb-4">Database 'Property_Records' does not exist</p>
+              <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+            </div>
+          </body>
+        </html>`,
+        {
+          status: 404,
+          headers: { 'Content-Type': 'text/html' },
+        }
+      );
+    }
+
+    // Select the database before inserting data
+    await connection.query('USE Property_Records');
 
     // Insert Property records
     await connection.execute(`
@@ -60,9 +87,46 @@ export async function GET() {
 
     await connection.end();
 
-    return NextResponse.json({ message: 'Dummy data inserted successfully' }, { status: 200 });
+    return new NextResponse(
+      `<html>
+        <head>
+        <title>Land Records</title>
+          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body class="flex items-center justify-center h-screen bg-gray-100">
+          <div class="text-center">
+            <h1 class="text-2xl font-bold mb-4">Database Status</h1>
+            <p class="mb-4">Dummy data inserted successfully into 'Property_Records' database</p>
+            <p class="mb-4">Tables populated: Property, Owners, Tenancy, CroppedArea</p>
+            <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+          </div>
+        </body>
+      </html>`,
+      {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
+      }
+    );
   } catch (error) {
     console.error('Error inserting dummy data:', error);
-    return NextResponse.json({ message: 'Error inserting dummy data', error }, { status: 500 });
+    return new NextResponse(
+      `<html>
+        <head>
+          <title>Land Records</title>
+          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body class="flex items-center justify-center h-screen bg-gray-100">
+          <div class="text-center">
+            <h1 class="text-2xl font-bold mb-4">Database Error</h1>
+            <p class="mb-4">Error inserting dummy data: ${error instanceof Error ? error.message : 'Unknown error'}</p>
+            <a href="/" class="text-blue-500 hover:underline">Go to home</a>
+          </div>
+        </body>
+      </html>`,
+      {
+        status: 500,
+        headers: { 'Content-Type': 'text/html' },
+      }
+    );
   }
 }
