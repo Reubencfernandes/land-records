@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 export default function DeleteData() {
   const router = useRouter();
@@ -53,11 +54,13 @@ export default function DeleteData() {
       }
 
       const result = await response.json();
-      console.log(result.message);
-      // TODO: Add user feedback (e.g., success message)
+      toast.success(result.message);
+      
+      // Use router.replace instead of router.push to force a re-render
+      router.replace('/');
     } catch (error) {
       console.error('Error deleting property:', error);
-      // TODO: Add user feedback (e.g., error message)
+      toast.error('Failed to delete property. Please try again.');
     }
   };
 

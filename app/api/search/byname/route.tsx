@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
         });
 
         const [rows] = await connection.query(
-            `SELECT * FROM property_details WHERE o.name = '${name}';
+            `SELECT * FROM property_details WHERE name = '${name}';
 `);
         const formattedData = {
     villageName: (rows as any[])[0]?.village_name ?? 'N/A',

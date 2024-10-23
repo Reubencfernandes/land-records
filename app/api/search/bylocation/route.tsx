@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         });
 
         const [rows] = await connection.execute(
-            `SELECT * FROM property_details WHERE p.taluka = '${taluka}' AND p.village_name = '${villageName}' AND p.survey_no = ${surveyNo} AND p.subdivision = ${subDivision}`);
+            `SELECT * FROM property_details WHERE taluka = '${taluka}' AND village_name = '${villageName}' AND survey_no = ${surveyNo} AND subdivision = ${subDivision}`);
 
 
         const formattedData = {
