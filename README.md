@@ -1,257 +1,271 @@
-Based on the provided SQL schema, the tables are **not fully normalized up to Third Normal Form (3NF)**. Below is a detailed analysis of each table, highlighting normalization issues and suggesting improvements.
 
 ---
 
-### **1. `admin` Table**
+### **1 - SELECT**
 
-**Schema:**
+1. **Select all columns from a table**
+   ```sql
+   SELECT * FROM [tablename];
+   ```
+   - This query retrieves all the columns and rows from a specified table.
+   - Example: Viewing all data in an employee database.
 
-```sql
-CREATE TABLE `admin` (
-  `Admin_id` int(11) NOT NULL,
-  `Username` varchar(20) NOT NULL,
-  `Admin_passw` varchar(20) NOT NULL,
-  PRIMARY KEY (`Admin_id`)
-);
-```
-
-**Analysis:**
-
-- **1NF (First Normal Form):** All columns contain atomic values. ✅
-- **2NF (Second Normal Form):** Since the primary key is a single column (`Admin_id`), all non-key attributes must depend on it. ✅
-- **3NF (Third Normal Form):** No transitive dependencies exist among non-key attributes. Assuming that `Admin_passw` depends only on `Admin_id` and not on `Username`, the table is in 3NF. ✅
-
-**Conclusion:** The `admin` table is properly normalized up to 3NF.
+2. **Select specific columns from a table**
+   ```sql
+   SELECT [columnname], [columnname] FROM [tablename];
+   ```
+   - Retrieves only the specified columns.
+   - Example: Selecting just the `name` and `salary` columns from an employee table.
 
 ---
 
-### **2. `booking` Table**
+### **2 - SORTING TABLES**
 
-**Schema:**
+1. **Order rows in ascending order**
+   ```sql
+   SELECT * FROM [tablename] ORDER BY [columnname] ASC;
+   ```
+   - Sorts rows in ascending order based on the specified column.
+   - Example: Sorting employees by their `salary` from lowest to highest.
 
-```sql
-CREATE TABLE `booking` (
-  `Booking_id` int(11) NOT NULL,
-  `Booking_date` date DEFAULT NULL,
-  `Start_DateTime` datetime DEFAULT NULL,
-  `End_DateTime` datetime DEFAULT NULL,
-  `Total_cost` float DEFAULT NULL,
-  `Status` varchar(255) DEFAULT NULL,
-  `Hall_id` int(11) DEFAULT NULL,
-  `Payment_id` int(11) DEFAULT NULL,
-  `Service_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`Booking_id`),
-  FOREIGN KEY (`Hall_id`) REFERENCES `conference_hall` (`Hall_id`),
-  FOREIGN KEY (`Payment_id`) REFERENCES `payments` (`Payment_id`),
-  FOREIGN KEY (`Service_id`) REFERENCES `service` (`Service_id`)
-);
-```
-
-**Analysis:**
-
-- **1NF:** All columns contain atomic values. ✅
-- **2NF:** All non-key attributes depend on the primary key `Booking_id`. ✅
-- **3NF:**
-
-  - **Issue with `Total_cost`:** If `Total_cost` is derived from other attributes like `Hall_id`, `Service_id`, `Start_DateTime`, and `End_DateTime`, then storing it violates 3NF because it introduces a transitive dependency.
-  - **Issue with `Status`:** If `Status` depends on `Payment_id` (e.g., status changes to 'Paid' when payment is completed), it's a transitive dependency.
-
-**Conclusion:** The `booking` table is **not fully normalized to 3NF** due to transitive dependencies involving `Total_cost` and `Status`.
-
-**Recommendation:**
-
-- Remove `Total_cost` and calculate it dynamically when needed.
-- Ensure that `Status` only depends on `Booking_id`, or move it to a related table if it depends on `Payment_id`.
+2. **Order rows by specific values**
+   ```sql
+   SELECT * FROM [tablename] ORDER BY FIELD([columnname], '[valuename1]', '[valuename2]');
+   ```
+   - Custom sorting based on a specific sequence of values.
+   - Example: Sorting products based on their `status` like 'in-stock', 'back-order'.
 
 ---
 
-### **3. `client` Table**
+### **3 - FILTERING**
 
-**Schema:**
+1. **Filter rows with a condition**
+   ```sql
+   SELECT * FROM [tablename] WHERE [columnname] = '[valuename]';
+   ```
+   - Filters rows where a column equals a specific value.
+   - Example: Employees where `department` is 'Sales'.
 
-```sql
-CREATE TABLE `client` (
-  `Client_id` int(11) NOT NULL,
-  `Name` varchar(255) NOT NULL,
-  `Email` varchar(255) NOT NULL,
-  `Booking_id` int(11) DEFAULT NULL,
-  `Organisation` varchar(50) NOT NULL,
-  `client_passw` varchar(20) NOT NULL,
-  PRIMARY KEY (`Client_id`),
-  FOREIGN KEY (`Booking_id`) REFERENCES `booking` (`Booking_id`)
-);
-```
+2. **Filter rows with multiple conditions**
+   ```sql
+   SELECT [columnname] FROM [tablename] WHERE [columnname] = '[valuename1]' AND [columnname] = '[valuename2]';
+   ```
+   - Retrieves rows meeting all conditions.
+   - Example: Offices in both 'Japan' and 'Tokyo'.
 
-**Analysis:**
+3. **Use OR for filtering**
+   ```sql
+   SELECT * FROM [tablename] WHERE [columnname] = '[valuename1]' OR [columnname] = '[valuename2]';
+   ```
+   - Retrieves rows meeting either condition.
+   - Example: Customers from 'USA' or 'Japan'.
 
-- **1NF:** All columns contain atomic values. ✅
-- **2NF:** All non-key attributes depend on `Client_id`. However, `Booking_id` suggests a client can have only one booking.
-- **3NF:**
+4. **Filter rows within a range**
+   ```sql
+   SELECT [columnname] FROM [tablename] WHERE [columnname] BETWEEN [valuename1] AND [valuename2];
+   ```
+   - Filters rows where the value lies within a specified range.
+   - Example: Employees with `age` between 25 and 40.
 
-  - **Issue with `Booking_id`:** Placing `Booking_id` in the `client` table implies a one-to-one relationship, which may not reflect real-world scenarios where a client can have multiple bookings.
-  - This design can lead to update anomalies and does not properly represent the relationship between clients and bookings.
+5. **Pattern-based filtering**
+   ```sql
+   SELECT * FROM [tablename] WHERE [columnname] LIKE '[pattern]';
+   ```
+   - Filters rows matching a pattern.
+   - Example: Customers whose names start with 'A%' or end with '%z'.
 
-**Conclusion:** The `client` table is **not properly normalized** and may not even satisfy 2NF due to the improper relationship with `Booking_id`.
+6. **Filter rows using a list**
+   ```sql
+   SELECT * FROM [tablename] WHERE [columnname] IN ([valuename1], [valuename2]);
+   ```
+   - Retrieves rows where the column matches any value in a list.
+   - Example: Offices in 'USA' or 'Japan'.
 
-**Recommendation:**
+7. **Filter null values**
+   ```sql
+   SELECT * FROM [tablename] WHERE [columnname] IS NULL;
+   ```
+   - Retrieves rows with null values.
+   - Example: Employees without a `manager`.
 
-- Remove `Booking_id` from the `client` table.
-- Add `Client_id` as a foreign key in the `booking` table to establish a one-to-many relationship.
-- Alternatively, create a junction table if a many-to-many relationship is needed.
+8. **Aggregate and count values**
+   ```sql
+   SELECT COUNT([columnname]), [columnname] FROM [tablename] GROUP BY [columnname];
+   ```
+   - Groups rows by a column and counts entries in each group.
+   - Example: Counting the number of employees in each department.
 
----
-
-### **4. `conference_hall` Table**
-
-**Schema:**
-
-```sql
-CREATE TABLE `conference_hall` (
-  `Hall_id` int(11) NOT NULL,
-  `Hall_Name` varchar(255) DEFAULT NULL,
-  `Location` varchar(255) DEFAULT NULL,
-  `Capacity` int(11) DEFAULT NULL,
-  `Facilities` longtext DEFAULT NULL,
-  `Price` int(11) DEFAULT NULL,
-  PRIMARY KEY (`Hall_id`)
-);
-```
-
-**Analysis:**
-
-- **1NF:**
-
-  - **Issue with `Facilities`:** If `Facilities` contains a list of facilities (e.g., as a comma-separated string), it violates 1NF because it is not atomic.
-  
-- **2NF:** Assuming `Facilities` is atomic, all non-key attributes depend on `Hall_id`. ✅
-- **3NF:** If `Price` depends only on `Hall_id`, and there are no transitive dependencies, it is in 3NF. However, the issue with `Facilities` prevents us from reaching this conclusion.
-
-**Conclusion:** The `conference_hall` table is **not in 1NF** due to the `Facilities` column.
-
-**Recommendation:**
-
-- Create a separate `facility` table:
-
-  ```sql
-  CREATE TABLE `facility` (
-    `Facility_id` int(11) NOT NULL,
-    `Facility_name` varchar(255) NOT NULL,
-    PRIMARY KEY (`Facility_id`)
-  );
-  ```
-
-- Create a junction table `hall_facilities` to map facilities to halls:
-
-  ```sql
-  CREATE TABLE `hall_facilities` (
-    `Hall_id` int(11) NOT NULL,
-    `Facility_id` int(11) NOT NULL,
-    PRIMARY KEY (`Hall_id`, `Facility_id`),
-    FOREIGN KEY (`Hall_id`) REFERENCES `conference_hall` (`Hall_id`),
-    FOREIGN KEY (`Facility_id`) REFERENCES `facility` (`Facility_id`)
-  );
-  ```
+9. **Limit the number of rows returned**
+   ```sql
+   SELECT [columnname] FROM [tablename] LIMIT [valuename];
+   ```
+   - Retrieves a specific number of rows.
+   - Example: Getting the top 5 highest-paid employees.
 
 ---
 
-### **5. `payments` Table**
+### **4 - JOINING TABLES**
 
-**Schema:**
+1. **Inner Join**
+   ```sql
+   SELECT [columnname1], [columnname2] FROM [tablename1] INNER JOIN [tablename2] ON [tablename1].[columnname] = [tablename2].[columnname];
+   ```
+   - Combines rows where the join condition matches in both tables.
+   - Example: Match employees to their respective office locations.
 
-```sql
-CREATE TABLE `payments` (
-  `Payment_id` int(11) NOT NULL,
-  `Amount` float DEFAULT NULL,
-  `Payment_Date` date DEFAULT NULL,
-  `Payment_Status` varchar(50) DEFAULT NULL,
-  `Payment_Method` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`Payment_id`)
-);
-```
+2. **Left Join**
+   ```sql
+   SELECT [columnname1], [columnname2] FROM [tablename1] LEFT JOIN [tablename2] ON [tablename1].[columnname] = [tablename2].[columnname];
+   ```
+   - Includes all rows from the left table and matches from the right table.
+   - Example: All employees with their office details, even if an office isn’t assigned.
 
-**Analysis:**
+3. **Right Join**
+   ```sql
+   SELECT [columnname1], [columnname2] FROM [tablename1] RIGHT JOIN [tablename2] ON [tablename1].[columnname] = [tablename2].[columnname];
+   ```
+   - Includes all rows from the right table and matches from the left table.
+   - Example: All offices with their employees, even if no employees are assigned.
 
-- **1NF:** All columns contain atomic values. ✅
-- **2NF:** All non-key attributes depend on `Payment_id`. ✅
-- **3NF:** No transitive dependencies exist among non-key attributes. ✅
-
-**Conclusion:** The `payments` table is properly normalized up to 3NF.
-
----
-
-### **6. `service` Table**
-
-**Schema:**
-
-```sql
-CREATE TABLE `service` (
-  `Service_id` int(11) NOT NULL,
-  `Service_name` varchar(255) DEFAULT NULL,
-  `Service_cost` float DEFAULT NULL,
-  `Quantity` int(11) DEFAULT NULL,
-  PRIMARY KEY (`Service_id`)
-);
-```
-
-**Analysis:**
-
-- **1NF:** All columns contain atomic values. ✅
-- **2NF:** All non-key attributes depend on `Service_id`. ✅
-- **3NF:**
-
-  - **Issue with `Service_name` and `Service_cost`:** If `Service_cost` is determined by `Service_name`, then `Service_name` functionally determines `Service_cost`. This introduces a transitive dependency because `Service_name` is not a candidate key.
-  - **Issue with `Quantity`:** It's unclear what `Quantity` represents here. If it's the quantity of services ordered per booking, it should not be in the `service` table.
-
-**Conclusion:** The `service` table is **not fully normalized to 3NF** due to transitive dependencies.
-
-**Recommendation:**
-
-- Create a `service_type` table:
-
-  ```sql
-  CREATE TABLE `service_type` (
-    `ServiceType_id` int(11) NOT NULL,
-    `Service_name` varchar(255) NOT NULL,
-    `Service_cost` float NOT NULL,
-    PRIMARY KEY (`ServiceType_id`)
-  );
-  ```
-
-- Modify the `service` table to include only service-specific details:
-
-  ```sql
-  CREATE TABLE `service` (
-    `Service_id` int(11) NOT NULL,
-    `ServiceType_id` int(11) NOT NULL,
-    `Booking_id` int(11) NOT NULL,
-    `Quantity` int(11) DEFAULT NULL,
-    PRIMARY KEY (`Service_id`),
-    FOREIGN KEY (`ServiceType_id`) REFERENCES `service_type` (`ServiceType_id`),
-    FOREIGN KEY (`Booking_id`) REFERENCES `booking` (`Booking_id`)
-  );
-  ```
+4. **Cross Join**
+   ```sql
+   SELECT [columnname1], [columnname2] FROM [tablename1] CROSS JOIN [tablename2];
+   ```
+   - Produces a Cartesian product of the two tables.
+   - Example: Combining all products with all suppliers.
 
 ---
 
-### **General Recommendations**
+### **5 - GROUPING DATA**
 
-- **Adjust Relationships:**
+1. **Group by and aggregate**
+   ```sql
+   SELECT [columnname] FROM [tablename] GROUP BY [columnname];
+   ```
+   - Groups rows by a column and performs aggregation.
+   - Example: Grouping sales by region.
 
-  - **Clients and Bookings:** Modify the schema to reflect that a client can have multiple bookings.
-  - **Bookings and Services:** Use a junction table to handle the many-to-many relationship between bookings and services.
+2. **Summation**
+   ```sql
+   SELECT SUM([columnname]) FROM [tablename];
+   ```
+   - Calculates the total sum of a column.
+   - Example: Total revenue.
 
-- **Eliminate Derived Data:**
-
-  - Remove columns that store calculated or derived data, such as `Total_cost`, unless necessary for performance and handled appropriately.
-
-- **Ensure Atomicity:**
-
-  - Break down columns that contain composite data into separate, atomic columns or related tables.
-
-- **Address Transitive Dependencies:**
-
-  - Reorganize tables to ensure non-key attributes depend only on primary keys.
+3. **Group by with conditions**
+   ```sql
+   SELECT [columnname], COUNT([columnname]) FROM [tablename] GROUP BY [columnname] HAVING [columnname] > [valuename];
+   ```
+   - Filters groups based on aggregate values.
+   - Example: Departments with more than 5 employees.
 
 ---
 
-**Final Conclusion:** The current schema has multiple normalization issues that prevent it from being fully normalized up to 3NF. By addressing the identified issues and implementing the recommended changes, you can achieve a properly normalized database schema.
+### **6 - SUBQUERIES**
+
+1. **Use a subquery in `IN`**
+   ```sql
+   SELECT [columnname] FROM [tablename1] WHERE [columnname] IN (SELECT [columnname] FROM [tablename2]);
+   ```
+   - Uses a subquery result to filter data.
+   - Example: Employees working in specific offices.
+
+2. **Find maximum or minimum values**
+   ```sql
+   SELECT [columnname] FROM [tablename] WHERE [columnname] = (SELECT MAX([columnname]) FROM [tablename]);
+   ```
+   - Retrieves rows with the maximum value in a column.
+   - Example: Product with the highest price.
+
+---
+
+### **7 - QUERYING DATA**
+
+1. **Create table**
+   ```sql
+   CREATE TABLE IF NOT EXISTS [tablename] ([columnname] INT AUTO_INCREMENT, PRIMARY KEY ([columnname]));
+   ```
+   - Creates a new table with specified columns.
+
+2. **Insert data**
+   ```sql
+   INSERT INTO [tablename] ([columnname1], [columnname2]) VALUES ('[valuename1]', '[valuename2]');
+   ```
+   - Adds data to a table.
+
+3. **Update data**
+   ```sql
+   UPDATE [tablename] SET [columnname] = '[valuename]' WHERE [columnname] = '[valuename]';
+   ```
+   - Modifies data in a table.
+
+4. **Delete data**
+   ```sql
+   DELETE FROM [tablename];
+   ```
+   - Deletes all data from a table.
+
+---
+
+### **8 - SET OPERATORS**
+
+1. **Union**
+   ```sql
+   SELECT [columnname] FROM [tablename1] UNION SELECT [columnname] FROM [tablename2];
+   ```
+   - Combines results from multiple queries, removing duplicates.
+
+2. **Intersect**
+   ```sql
+   SELECT [columnname] FROM [tablename1] INTERSECT SELECT [columnname] FROM [tablename2];
+   ```
+   - Retrieves common rows from both queries.
+
+3. **Except**
+   ```sql
+   SELECT [columnname] FROM [tablename1] EXCEPT SELECT [columnname] FROM [tablename2];
+   ```
+   - Retrieves rows present in the first query but not in the second.
+
+---
+
+### **9 - DATABASE AND TABLES**
+
+1. **Create database**
+   ```sql
+   CREATE DATABASE IF NOT EXISTS [databasename];
+   ```
+   - Creates a new database.
+
+2. **Alter table**
+   ```sql
+   ALTER TABLE [tablename] ADD [columnname] INT;
+   ```
+   - Modifies the structure of an existing table.
+
+---
+
+### **10 - TRIGGERS**
+
+1. **Create trigger**
+   ```sql
+   CREATE TRIGGER [triggername]
+   AFTER INSERT ON [tablename]
+   FOR EACH ROW
+   BEGIN
+       INSERT INTO [tablename2] ([columnname]) VALUES ('[valuename]');
+   END;
+   ```
+   - Automatically performs actions after an event.
+
+---
+
+### **11 - VIEWS**
+
+1. **Create a view**
+   ```sql
+   CREATE VIEW [viewname] AS SELECT [columnname] FROM [tablename1] INNER JOIN [tablename2] USING([columnname]);
+   ```
+   - Creates a virtual table based on a query.
+
+---
